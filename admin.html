@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>ArduKod - Yönetim Paneli</title>
+    <style>
+        body {
+            background-color: #0d1117;
+            color: #f0f6fc;
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px 40px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .nav-btns a {
+            color: #8b949e;
+            text-decoration: none;
+            margin-left: 15px;
+            padding: 6px 12px;
+            border: 1px solid #30363d;
+            border-radius: 5px;
+        }
+        .container {
+            display: flex;
+            gap: 30px;
+        }
+        .form-side {
+            flex: 2;
+            background: #161b22;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+        }
+        .list-side {
+            flex: 1;
+            background: #161b22;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        label { display: block; margin-top: 10px; font-size: 13px; color: #8b949e; }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px 10px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: white;
+            border-radius: 5px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            font-family: monospace;
+        }
+        textarea { height: 180px; resize: vertical; }
+        .pin-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+        }
+        .btn {
+            background: #00979d;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .btn-danger { background: #da3633; }
+        .btn-secondary { background: #30363d; margin-top: 6px; }
+        .proje-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #30363d;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h2>⚙ ArduKod Yönetim Paneli</h2>
+    <div class="nav-btns">
+        <a href="/">← Siteyi Gör</a>
+        <a href="/admin/logout" style="color:#f85149;">Çıkış Yap</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="form-side">
+        <h3 id="formTitle">Yeni Proje Ekle / Düzenle</h3>
+        
+        <label>Proje Kimliği (ID - İngilizce & Boşluksuz):</label>
+        <input type="text" id="pId" placeholder="ornek: dht22-sicaklik">
+
+        <label>Kategori:</label>
+        <input type="text" id="pKategori" placeholder="ornek: Sensörler, Motor & Sürücü">
+
+        <label>Proje Başlığı:</label>
+        <input type="text" id="pBaslik" placeholder="ornek: DHT22 ile Sıcaklık Okuma">
+
+        <label>Kütüphane Bilgisi:</label>
+        <input type="text" id="pKutuphane" placeholder="ornek: <DHT.h>">
+
+        <label>Pin Bağlantıları:</label>
+        <div id="pinlerAlani">
+            <div class="pin-row">
+                <input type="text" placeholder="Bileşen / Bacak" class="pin-bilesen">
+                <input type="text" placeholder="Arduino Pini" class="pin-deger">
+            </div>
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="pinSatiriEkle()">+ Pin Ekle</button>
+
+        <label>Arduino C++ Kodu:</label>
+        <textarea id="pKod" placeholder="void setup() { ... }"></textarea>
+
+        <button type="button" class="btn" onclick="projeyiKaydet()">Kaydet</button>
+        <button type="button" class="btn btn-secondary" onclick="formuTemizle()">Formu Temizle</button>
+    </div>
+
+    <div class="list-side">
+        <h3>Mevcut Projeler</h3>
+        <div id="projeListesi"></div>
+    </div>
+</div>
+
+<script>
+    async function projeleriYukle() {
+        const res = await fetch('/projeler');
+        const projeler = await res.json();
+        const listDiv = document.getElementById('projeListesi');
+        listDiv.innerHTML = '';
+
+        projeler.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'proje-card';
+            div.innerHTML = `
+                <div>
+                    <strong>${p.baslik}</strong><br>
+                    <small style="color:#8b949e;">${p.kategori}</small>
+                </div>
+                <div>
+                    <button class="btn" style="padding:4px 8px; font-size:12px;" onclick="duzenle('${p.id}')">Düzenle</button>
+                    <button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="sil('${p.id}')">Sil</button>
+                </div>
+            `;
+            listDiv.appendChild(div);
+        });
+    }
+
+    function pinSatiriEkle(bilesen = '', pin = '') {
+        const container = document.getElementById('pinlerAlani');
+        const row = document.createElement('div');
+        row.className = 'pin-row';
+        row.innerHTML = `
+            <input type="text" placeholder="Bileşen / Bacak" class="pin-bilesen" value="${bilesen}">
+            <input type="text" placeholder="Arduino Pini" class="pin-deger" value="${pin}">
+        `;
+        container.appendChild(row);
+    }
+
+    async function duzenle(id) {
+        const res = await fetch(`/proje/${id}`);
+        const data = await res.json();
+        if(data.durum === 'basarili') {
+            const v = data.veri;
+            document.getElementById('pId').value = id;
+            document.getElementById('pId').disabled = true; // ID değiştirilemez
+            document.getElementById('pKategori').value = v.kategori;
+            document.getElementById('pBaslik').value = v.baslik;
+            document.getElementById('pKutuphane').value = v.kutuphaneler;
+            document.getElementById('pKod').value = v.kod;
+
+            const pinAlani = document.getElementById('pinlerAlani');
+            pinAlani.innerHTML = '';
+            v.baglanti.forEach(b => pinSatiriEkle(b.bilesen, b.pin));
+
+            document.getElementById('formTitle').innerText = 'Projeyi Düzenle: ' + v.baslik;
+        }
+    }
+
+    function formuTemizle() {
+        document.getElementById('pId').value = '';
+        document.getElementById('pId').disabled = false;
+        document.getElementById('pKategori').value = '';
+        document.getElementById('pBaslik').value = '';
+        document.getElementById('pKutuphane').value = '';
+        document.getElementById('pKod').value = '';
+        document.getElementById('pinlerAlani').innerHTML = '';
+        pinSatiriEkle();
+        document.getElementById('formTitle').innerText = 'Yeni Proje Ekle / Düzenle';
+    }
+
+    async function projeyiKaydet() {
+        const id = document.getElementById('pId').value.trim();
+        const kategori = document.getElementById('pKategori').value.trim();
+        const baslik = document.getElementById('pBaslik').value.trim();
+        const kutuphaneler = document.getElementById('pKutuphane').value.trim();
+        const kod = document.getElementById('pKod').value;
+
+        const pinler = [];
+        const rows = document.querySelectorAll('.pin-row');
+        rows.forEach(r => {
+            const bilesen = r.querySelector('.pin-bilesen').value.trim();
+            const pin = r.querySelector('.pin-deger').value.trim();
+            if (bilesen && pin) pinler.push({ bilesen, pin });
+        });
+
+        const res = await fetch('/admin/kaydet', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, kategori, baslik, kutuphaneler, kod, baglanti: pinler })
+        });
+        const data = await res.json();
+        alert(data.mesaj);
+        if (data.durum === 'basarili') {
+            formuTemizle();
+            projeleriYukle();
+        }
+    }
+
+    async function sil(id) {
+        if(!confirm(`'${id}' projesini silmek istediğinize emin misiniz?`)) return;
+        const res = await fetch(`/admin/sil/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        alert(data.mesaj);
+        projeleriYukle();
+    }
+
+    window.onload = () => {
+        projeleriYukle();
+        pinSatiriEkle();
+    };
+</script>
+
+</body>
+</html>

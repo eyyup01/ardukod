@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArduKod - Arduino Geliştirici Kütüphanesi</title>
+    <!-- Prism.js Arduino Syntax Highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --panel-bg: #161b22;
+            --border: #30363d;
+            --primary: #00979d;
+            --primary-hover: #00b4bd;
+            --text-main: #f0f6fc;
+            --text-sub: #8b949e;
+            --accent-green: #3fb950;
+        }
+        * { box-sizing: border-box; }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 320px;
+            background-color: var(--panel-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .sidebar-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-top h2 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 20px;
+        }
+        .admin-link {
+            color: var(--text-sub);
+            text-decoration: none;
+            font-size: 12px;
+            padding: 4px 8px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+        .admin-link:hover {
+            color: #fff;
+            border-color: var(--primary);
+        }
+        .search-input {
+            width: 100%;
+            margin-top: 14px;
+            padding: 9px 12px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: #fff;
+            outline: none;
+            font-size: 13.5px;
+        }
+        .search-input:focus { border-color: var(--primary); }
+        .project-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+        .category-group { margin-bottom: 14px; }
+        .category-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-sub);
+            font-weight: bold;
+            margin-bottom: 6px;
+            padding-left: 6px;
+        }
+        .project-item {
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text-main);
+            cursor: pointer;
+            font-size: 13.5px;
+            transition: 0.15s;
+            margin-bottom: 2px;
+        }
+        .project-item:hover { background-color: rgba(0, 151, 157, 0.15); color: var(--primary-hover); }
+        .project-item.active { background-color: var(--primary); color: #fff; font-weight: 500; }
+        .content {
+            flex: 1;
+            padding: 30px 40px;
+            overflow-y: auto;
+        }
+        .project-title { font-size: 24px; color: var(--text-main); margin-top: 0; margin-bottom: 16px; }
+        .section-label {
+            font-size: 14px;
+            color: var(--primary);
+            font-weight: 600;
+            margin-top: 22px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--panel-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        th, td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 13.5px;
+        }
+        th { background-color: rgba(255, 255, 255, 0.02); color: var(--text-sub); }
+        td.pin-cell { color: var(--accent-green); font-family: monospace; font-weight: bold; }
+        .code-container { position: relative; margin-top: 10px; }
+        pre[class*="language-"] {
+            margin: 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 13px;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #21262d;
+            border: 1px solid var(--border);
+            color: var(--text-sub);
+            padding: 5px 10px;
+            font-size: 11px;
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .copy-btn:hover { color: #fff; border-color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <div class="header-top">
+            <h2>⚡ ArduKod</h2>
+            <a href="/admin" class="admin-link">⚙ Admin</a>
+        </div>
+        <input type="text" id="searchInput" class="search-input" placeholder="Devre veya sensör ara...">
+    </div>
+    <div id="projectList" class="project-list"></div>
+</div>
+
+<div class="content">
+    <div id="detailView">
+        <h1 id="pBaslik" class="project-title">Yükleniyor...</h1>
+
+        <div class="section-label">📚 Kütüphaneler</div>
+        <p id="pKutuphane" style="color: var(--text-sub); margin: 0; font-size: 14px;"></p>
+
+        <div class="section-label">🔌 Pin Bağlantı Tablosu</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Bileşen / Pin</th>
+                    <th>Arduino Bağlantısı</th>
+                </tr>
+            </thead>
+            <tbody id="pTablo"></tbody>
+        </table>
+
+        <div class="section-label">💻 Arduino C++ Kodu</div>
+        <div class="code-container">
+            <button class="copy-btn" onclick="koduKopyala()">Kopyala</button>
+            <pre><code id="pKod" class="language-clike"></code></pre>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+
+<script>
+    let tumProjeler = [];
+
+    window.onload = async () => {
+        const res = await fetch('/projeler');
+        tumProjeler = await res.json();
+        listeyiCiz(tumProjeler);
+        if (tumProjeler.length > 0) projeYukle(tumProjeler[0].id);
+    };
+
+    function listeyiCiz(projeler) {
+        const listDiv = document.getElementById('projectList');
+        listDiv.innerHTML = '';
+        const gruplar = {};
+        projeler.forEach(p => {
+            if (!gruplar[p.kategori]) gruplar[p.kategori] = [];
+            gruplar[p.kategori].push(p);
+        });
+
+        for (const [kat, items] of Object.entries(gruplar)) {
+            const grupDiv = document.createElement('div');
+            grupDiv.className = 'category-group';
+            grupDiv.innerHTML = `<div class="category-title">${kat}</div>`;
+            items.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'project-item';
+                item.innerText = p.baslik;
+                item.id = `item-${p.id}`;
+                item.onclick = () => projeYukle(p.id);
+                grupDiv.appendChild(item);
+            });
+            listDiv.appendChild(grupDiv);
+        }
+    }
+
+    async function projeYukle(id) {
+        document.querySelectorAll('.project-item').forEach(el => el.classList.remove('active'));
+        const secili = document.getElementById(`item-${id}`);
+        if (secili) secili.classList.add('active');
+
+        const res = await fetch(`/proje/${id}`);
+        const data = await res.json();
+
+        if (data.durum === 'basarili') {
+            document.getElementById('pBaslik').innerText = data.veri.baslik;
+            document.getElementById('pKutuphane').innerText = data.veri.kutuphaneler;
+
+            const tbody = document.getElementById('pTablo');
+            tbody.innerHTML = '';
+            data.veri.baglanti.forEach(b => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${b.bilesen}</td><td class="pin-cell">${b.pin}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            const kodEl = document.getElementById('pKod');
+            kodEl.textContent = data.veri.kod;
+            Prism.highlightElement(kodEl);
+        }
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        listeyiCiz(tumProjeler.filter(p => p.baslik.toLowerCase().includes(val) || p.kategori.toLowerCase().includes(val)));
+    });
+
+    function koduKopyala() {
+        navigator.clipboard.writeText(document.getElementById('pKod').textContent).then(() => {
+            alert('Kod kopyalandı!');
+        });
+    }
+</script>
+
+</body>
+</html>

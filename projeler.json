@@ -1,0 +1,534 @@
+{
+  "kara-simsek": {
+    "kategori": "Temel & LED",
+    "baslik": "5 LED Kademeli Kara Şimşek (Knight Rider)",
+    "kutuphaneler": "Harici kütüphaneye gerek yoktur.",
+    "baglanti": [
+      {
+        "bilesen": "LED 1 Anot (+)",
+        "pin": "Arduino Pin 2 (220Ω Direnç Seriye Bağlı)"
+      },
+      {
+        "bilesen": "LED 2 Anot (+)",
+        "pin": "Arduino Pin 3 (220Ω Direnç Seriye Bağlı)"
+      },
+      {
+        "bilesen": "LED 3 Anot (+)",
+        "pin": "Arduino Pin 4 (220Ω Direnç Seriye Bağlı)"
+      },
+      {
+        "bilesen": "LED 4 Anot (+)",
+        "pin": "Arduino Pin 5 (220Ω Direnç Seriye Bağlı)"
+      },
+      {
+        "bilesen": "LED 5 Anot (+)",
+        "pin": "Arduino Pin 6 (220Ω Direnç Seriye Bağlı)"
+      },
+      {
+        "bilesen": "LED 1-5 Katotları (-)",
+        "pin": "Breadboard Mavi Eksi Hattı -> Arduino GND"
+      }
+    ],
+    "kod": "const int ledPinleri[] = {2, 3, 4, 5, 6};\nconst int ledSayisi = 5;\nconst int beklemeSuresi = 65;\n\nvoid setup() {\n  for (int i = 0; i < ledSayisi; i++) {\n    pinMode(ledPinleri[i], OUTPUT);\n    digitalWrite(ledPinleri[i], LOW);\n  }\n}\n\nvoid loop() {\n  for (int i = 0; i < ledSayisi; i++) {\n    digitalWrite(ledPinleri[i], HIGH);\n    delay(beklemeSuresi);\n    digitalWrite(ledPinleri[i], LOW);\n  }\n  for (int i = ledSayisi - 2; i > 0; i--) {\n    digitalWrite(ledPinleri[i], HIGH);\n    delay(beklemeSuresi);\n    digitalWrite(ledPinleri[i], LOW);\n  }\n}"
+  },
+  "rgb-pwm": {
+    "kategori": "Temel & LED",
+    "baslik": "RGB LED Yumuşak Renk Geçişi (PWM Fade)",
+    "kutuphaneler": "Harici kütüphaneye gerek yoktur.",
+    "baglanti": [
+      {
+        "bilesen": "Kırmızı Bacak (Red)",
+        "pin": "Dijital Pin 9 (PWM) - 220Ω Direnç"
+      },
+      {
+        "bilesen": "Ortak Katot (En Uzun)",
+        "pin": "Arduino GND"
+      },
+      {
+        "bilesen": "Yeşil Bacak (Green)",
+        "pin": "Dijital Pin 10 (PWM) - 220Ω Direnç"
+      },
+      {
+        "bilesen": "Mavi Bacak (Blue)",
+        "pin": "Dijital Pin 11 (PWM) - 220Ω Direnç"
+      }
+    ],
+    "kod": "const int redPin = 9;\nconst int greenPin = 10;\nconst int bluePin = 11;\n\nvoid setup() {\n  pinMode(redPin, OUTPUT);\n  pinMode(greenPin, OUTPUT);\n  pinMode(bluePin, OUTPUT);\n}\n\nvoid renkAyarla(int kirmizi, int yesil, int mavi) {\n  analogWrite(redPin, kirmizi);\n  analogWrite(greenPin, yesil);\n  analogWrite(bluePin, mavi);\n}\n\nvoid loop() {\n  for (int i = 0; i <= 255; i++) {\n    renkAyarla(255 - i, i, 0);\n    delay(10);\n  }\n  for (int i = 0; i <= 255; i++) {\n    renkAyarla(0, 255 - i, i);\n    delay(10);\n  }\n  for (int i = 0; i <= 255; i++) {\n    renkAyarla(i, 0, 255 - i);\n    delay(10);\n  }\n}"
+  },
+  "trafik-isiklari": {
+    "kategori": "Temel & LED",
+    "baslik": "Zaman Ayarlı Standart Trafik Işıkları",
+    "kutuphaneler": "Harici kütüphaneye gerek yoktur.",
+    "baglanti": [
+      {
+        "bilesen": "Kırmızı LED Anot (+)",
+        "pin": "Dijital Pin 8 (220Ω Direnç)"
+      },
+      {
+        "bilesen": "Sarı LED Anot (+)",
+        "pin": "Dijital Pin 9 (220Ω Direnç)"
+      },
+      {
+        "bilesen": "Yeşil LED Anot (+)",
+        "pin": "Dijital Pin 10 (220Ω Direnç)"
+      },
+      {
+        "bilesen": "Tüm Katotlar (-)",
+        "pin": "Breadboard Ortak Toprak -> GND"
+      }
+    ],
+    "kod": "const int kirmiziPin = 8;\nconst int sariPin = 9;\nconst int yesilPin = 10;\n\nvoid setup() {\n  pinMode(kirmiziPin, OUTPUT);\n  pinMode(sariPin, OUTPUT);\n  pinMode(yesilPin, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(kirmiziPin, HIGH);\n  digitalWrite(sariPin, LOW);\n  digitalWrite(yesilPin, LOW);\n  delay(5000);\n\n  digitalWrite(sariPin, HIGH);\n  delay(1500);\n\n  digitalWrite(kirmiziPin, LOW);\n  digitalWrite(sariPin, LOW);\n  digitalWrite(yesilPin, HIGH);\n  delay(4000);\n\n  for(int i=0; i<3; i++) {\n    digitalWrite(yesilPin, LOW); delay(250);\n    digitalWrite(yesilPin, HIGH); delay(250);\n  }\n\n  digitalWrite(yesilPin, LOW);\n  digitalWrite(sariPin, HIGH);\n  delay(1500);\n  digitalWrite(sariPin, LOW);\n}"
+  },
+  "ldr-otomatik-isik": {
+    "kategori": "Sensörler",
+    "baslik": "LDR & Gerilim Bölücü ile Otomatik Far/Aydınlatma",
+    "kutuphaneler": "Harici kütüphaneye gerek yoktur.",
+    "baglanti": [
+      {
+        "bilesen": "LDR 1. Bacak",
+        "pin": "Arduino 5V"
+      },
+      {
+        "bilesen": "LDR 2. Bacak",
+        "pin": "Arduino A0 ve 10kΩ Direnç Bacağı"
+      },
+      {
+        "bilesen": "10kΩ Direnç Diğer Bacak",
+        "pin": "Arduino GND"
+      },
+      {
+        "bilesen": "Çıkış LED Anot (+)",
+        "pin": "Dijital Pin 12 (220Ω Direnç)"
+      },
+      {
+        "bilesen": "Çıkış LED Katot (-)",
+        "pin": "Arduino GND"
+      }
+    ],
+    "kod": "const int ldrPin = A0;\nconst int ledPin = 12;\nconst int ESIK_DEGER = 350;\n\nvoid setup() {\n  pinMode(ledPin, OUTPUT);\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  int isikSeviyesi = analogRead(ldrPin);\n  Serial.print(\"Isik Seviyesi: \");\n  Serial.println(isikSeviyesi);\n\n  if (isikSeviyesi < ESIK_DEGER) {\n    digitalWrite(ledPin, HIGH);\n  } else {\n    digitalWrite(ledPin, LOW);\n  }\n  delay(200);\n}"
+  },
+  "hc-sr04-radar": {
+    "kategori": "Sensörler",
+    "baslik": "HC-SR04 Ultrasonik Hassas Park Sensörü & Buzzer",
+    "kutuphaneler": "Harici kütüphaneye gerek yoktur.",
+    "baglanti": [
+      {
+        "bilesen": "HC-SR04 VCC",
+        "pin": "Arduino 5V"
+      },
+      {
+        "bilesen": "HC-SR04 GND",
+        "pin": "Arduino GND"
+      },
+      {
+        "bilesen": "HC-SR04 Trig",
+        "pin": "Dijital Pin 9"
+      },
+      {
+        "bilesen": "HC-SR04 Echo",
+        "pin": "Dijital Pin 10"
+      },
+      {
+        "bilesen": "Buzzer (+)",
+        "pin": "Dijital Pin 8"
+      },
+      {
+        "bilesen": "Buzzer (-)",
+        "pin": "Arduino GND"
+      }
+    ],
+    "kod": "const int trigPin = 9;\nconst int echoPin = 10;\nconst int buzzerPin = 8;\n\nvoid setup() {\n  pinMode(trigPin, OUTPUT);\n  pinMode(echoPin, INPUT);\n  pinMode(buzzerPin, OUTPUT);\n  Serial.begin(9600);\n}\n\nlong mesafeOlcum() {\n  digitalWrite(trigPin, LOW);\n  delayMicroseconds(2);\n  digitalWrite(trigPin, HIGH);\n  delayMicroseconds(10);\n  digitalWrite(trigPin, LOW);\n\n  long sure = pulseIn(echoPin, HIGH, 30000);\n  if (sure == 0) return 999;\n  return (sure * 0.0343) / 2;\n}\n\nvoid loop() {\n  long mesafe = mesafeOlcum();\n  Serial.print(\"Mesafe: \"); Serial.print(mesafe); Serial.println(\" cm\");\n\n  if (mesafe <= 10) {\n    digitalWrite(buzzerPin, HIGH);\n  } else if (mesafe <= 30) {\n    digitalWrite(buzzerPin, HIGH); delay(60);\n    digitalWrite(buzzerPin, LOW);  delay(60);\n  } else if (mesafe <= 60) {\n    digitalWrite(buzzerPin, HIGH); delay(150);\n    digitalWrite(buzzerPin, LOW);  delay(250);\n  } else {\n    digitalWrite(buzzerPin, LOW);\n    delay(100);\n  }\n}"
+  },
+  "pir-alarm": {
+    "kategori": "Sensörler",
+    "baslik": "HC-SR501 PIR Hareket Algılamalı Hırsız Alarmı",
+    "kutuphaneler": "Harici kütüphaneye gerek yoktur.",
+    "baglanti": [
+      {
+        "bilesen": "PIR VCC",
+        "pin": "Arduino 5V"
+      },
+      {
+        "bilesen": "PIR GND",
+        "pin": "Arduino GND"
+      },
+      {
+        "bilesen": "PIR OUT",
+        "pin": "Dijital Pin 2"
+      },
+      {
+        "bilesen": "İkaz LED Anot (+)",
+        "pin": "Dijital Pin 13"
+      },
+      {
+        "bilesen": "Buzzer (+)",
+        "pin": "Dijital Pin 8"
+      },
+      {
+        "bilesen": "Buzzer (-)",
+        "pin": "Arduino GND"
+      }
+    ],
+    "kod": "const int pirPin = 2;\nconst int ledPin = 13;\nconst int buzzerPin = 8;\n\nvoid setup() {\n  pinMode(pirPin, INPUT);\n  pinMode(ledPin, OUTPUT);\n  pinMode(buzzerPin, OUTPUT);\n  Serial.begin(9600);\n  Serial.println(\"PIR Kalibre Ediliyor (15 sn)...\");\n  delay(15000);\n}\n\nvoid loop() {\n  int hareket = digitalRead(pirPin);\n  if (hareket == HIGH) {\n    digitalWrite(ledPin, HIGH);\n    tone(buzzerPin, 1000);\n    delay(500);\n    noTone(buzzerPin);\n  } else {\n    digitalWrite(ledPin, LOW);\n    noTone(buzzerPin);\n  }\n  delay(100);\n}"
+  },
+  "dht11-sicaklik-nem": {
+    "kategori": "Sensörler",
+    "baslik": "DHT11 Dijital Sıcaklık & Nem Ölçümü",
+    "kutuphaneler": "DHT sensor library (Adafruit) ve Adafruit Unified Sensor",
+    "baglanti": [
+      {
+        "bilesen": "DHT11 VCC",
+        "pin": "Arduino 5V"
+      },
+      {
+        "bilesen": "DHT11 DATA",
+        "pin": "Arduino Dijital Pin 2 (5V arasına 10k pull-up direnç)"
+      },
+      {
+        "bilesen": "DHT11 NC",
+        "pin": "Boşta bırakılır (Bağlanmaz)"
+      },
+      {
+        "bilesen": "DHT11 GND",
+        "pin": "Arduino GND"
+      }
+    ],
+    "kod": "#include <DHT.h>\n\n#define DHTPIN 2\n#define DHTTYPE DHT11\n\nDHT dht(DHTPIN, DHTTYPE);\n\nvoid setup() {\n  Serial.begin(9600);\n  dht.begin();\n}\n\nvoid loop() {\n  delay(2000);\n  float nem = dht.readHumidity();\n  float sicaklik = dht.readTemperature();\n\n  if (isnan(nem) || isnan(sicaklik)) {\n    Serial.println(\"HATA: DHT sensorunden veri okunamiyor!\");\n    return;\n  }\n\n  Serial.print(\"Nem: %\"); Serial.print(nem);\n  Serial.print(\" | Sicaklik: \"); Serial.print(sicaklik); Serial.println(\" C\");\n}"
+  },
+  "tcrt5000-cizgi-takip": {
+    "kategori": "Sensörler",
+    "baslik": "TCRT5000 Çift Çıkışlı Kızılötesi Çizgi Sensörü",
+    "kutuphaneler": "Harici kütüphaneye gerek yoktur.",
+    "baglanti": [
+      {
+        "bilesen": "VCC",
+        "pin": "Arduino 5V"
+      },
+      {
+        "bilesen": "GND",
+        "pin": "Arduino GND"
+      },
+      {
+        "bilesen": "D0 (Dijital Çıkış)",
+        "pin": "Arduino Pin 3"
+      },
+      {
+        "bilesen": "A0 (Analog Çıkış)",
+        "pin": "Arduino Analog Pin A0"
+      },
+      {
+        "bilesen": "Durum LED'i",
+        "pin": "Arduino Dahili LED Pin 13"
+      }
+    ],
+    "kod": "const int d0Pin = 3;\nconst int a0Pin = A0;\nconst int ledPin = 13;\n\nvoid setup() {\n  pinMode(d0Pin, INPUT);\n  pinMode(ledPin, OUTPUT);\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  int dijitalDeger = digitalRead(d0Pin);\n  int analogDeger = analogRead(a0Pin);\n\n  Serial.print(\"Analog: \"); Serial.print(analogDeger);\n  Serial.print(\" | Durum: \");\n\n  if (dijitalDeger == HIGH) {\n    Serial.println(\"SIYAH ZEMIN\");\n    digitalWrite(ledPin, HIGH);\n  } else {\n    Serial.println(\"BEYAZ ZEMIN\");\n    digitalWrite(ledPin, LOW);\n  }\n  delay(150);\n}"
+  },
+  "potansiyometre-pwm": {
+    "kategori": "Giriş & Kontrol",
+    "baslik": "Potansiyometre ile LED Parlaklığı Ayarlama (Map)",
+    "kutuphaneler": "Harici kütüphaneye gerek yoktur.",
+    "baglanti": [
+      {
+        "bilesen": "Pot Sol Bacak",
+        "pin": "Arduino 5V"
+      },
+      {
+        "bilesen": "Pot Orta Bacak (Wiper)",
+        "pin": "Arduino Analog Pin A0"
+      },
+      {
+        "bilesen": "Pot Sağ Bacak",
+        "pin": "Arduino GND"
+      },
+      {
+        "bilesen": "LED Anot (+)",
+        "pin": "Dijital Pin 9 (PWM) - 220Ω Direnç"
+      },
+      {
+        "bilesen": "LED Katot (-)",
+        "pin": "Arduino GND"
+      }
+    ],
+    "kod": "const int potPin = A0;\nconst int ledPin = 9;\n\nvoid setup() {\n  pinMode(ledPin, OUTPUT);\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  int hamVeri = analogRead(potPin);\n  int parlaklik = map(hamVeri, 0, 1023, 0, 255);\n  analogWrite(ledPin, parlaklik);\n\n  Serial.print(\"Pot: \"); Serial.print(hamVeri);\n  Serial.print(\" -> PWM: \"); Serial.println(parlaklik);\n  delay(20);\n}"
+  },
+  "buton-debounce": {
+    "kategori": "Giriş & Kontrol",
+    "baslik": "Parazitsiz (Debounce) Buton ile LED Toggle Aç/Kapat",
+    "kutuphaneler": "Harici kütüphaneye gerek yoktur.",
+    "baglanti": [
+      {
+        "bilesen": "Push Buton 1. Bacak",
+        "pin": "Arduino Dijital Pin 2"
+      },
+      {
+        "bilesen": "Push Buton 2. Bacak",
+        "pin": "Arduino GND (Dahili INPUT_PULLUP kullanılır)"
+      },
+      {
+        "bilesen": "LED Anot (+)",
+        "pin": "Dijital Pin 8 (220Ω Direnç)"
+      },
+      {
+        "bilesen": "LED Katot (-)",
+        "pin": "Arduino GND"
+      }
+    ],
+    "kod": "const int butonPin = 2;\nconst int ledPin = 8;\n\nint ledDurumu = LOW;\nint butonSonDurum = HIGH;\nunsigned long sonArkZamani = 0;\nconst unsigned long arkGecikmesi = 50;\n\nvoid setup() {\n  pinMode(butonPin, INPUT_PULLUP);\n  pinMode(ledPin, OUTPUT);\n  digitalWrite(ledPin, ledDurumu);\n}\n\nvoid loop() {\n  int okuma = digitalRead(butonPin);\n  if (okuma != butonSonDurum) {\n    sonArkZamani = millis();\n  }\n\n  if ((millis() - sonArkZamani) > arkGecikmesi) {\n    static int onayliDurum = HIGH;\n    if (okuma != onayliDurum) {\n      onayliDurum = okuma;\n      if (onayliDurum == LOW) {\n        ledDurumu = !ledDurumu;\n        digitalWrite(ledPin, ledDurumu);\n      }\n    }\n  }\n  butonSonDurum = okuma;\n}"
+  },
+  "analog-joystick": {
+    "kategori": "Giriş & Kontrol",
+    "baslik": "İki Eksenli Joystick & Entegre Buton Okuma",
+    "kutuphaneler": "Harici kütüphaneye gerek yoktur.",
+    "baglanti": [
+      {
+        "bilesen": "Joystick VCC",
+        "pin": "Arduino 5V"
+      },
+      {
+        "bilesen": "Joystick GND",
+        "pin": "Arduino GND"
+      },
+      {
+        "bilesen": "Joystick VRx",
+        "pin": "Arduino Analog Pin A0"
+      },
+      {
+        "bilesen": "Joystick VRy",
+        "pin": "Arduino Analog Pin A1"
+      },
+      {
+        "bilesen": "Joystick SW (Switch)",
+        "pin": "Dijital Pin 2"
+      }
+    ],
+    "kod": "const int xPin = A0;\nconst int yPin = A1;\nconst int swPin = 2;\n\nvoid setup() {\n  pinMode(swPin, INPUT_PULLUP);\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  int xDeger = analogRead(xPin);\n  int yDeger = analogRead(yPin);\n  int swDurum = digitalRead(swPin);\n\n  Serial.print(\"X: \"); Serial.print(xDeger);\n  Serial.print(\" | Y: \"); Serial.print(yDeger);\n  Serial.print(\" | Buton: \");\n  Serial.println(swDurum == LOW ? \"TIKLANDI\" : \"BOS\");\n  delay(150);\n}"
+  },
+  "servo-pot-kontrol": {
+    "kategori": "Motor & Sürücü",
+    "baslik": "Potansiyometre ile Konum Kontrollü SG90 Servo",
+    "kutuphaneler": "<Servo.h> (Arduino dahili kütüphanesi)",
+    "baglanti": [
+      {
+        "bilesen": "SG90 Kahverengi Kablo",
+        "pin": "Arduino GND"
+      },
+      {
+        "bilesen": "SG90 Kırmızı Kablo",
+        "pin": "Arduino 5V"
+      },
+      {
+        "bilesen": "SG90 Turuncu Kablo",
+        "pin": "Dijital Pin 9 (PWM)"
+      },
+      {
+        "bilesen": "Potansiyometre Orta Bacak",
+        "pin": "Arduino Analog Pin A0"
+      },
+      {
+        "bilesen": "Potansiyometre Dış Bacaklar",
+        "pin": "Arduino 5V ve GND"
+      }
+    ],
+    "kod": "#include <Servo.h>\n\nServo microServo;\nconst int potPin = A0;\n\nvoid setup() {\n  microServo.attach(9);\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  int potDeger = analogRead(potPin);\n  int aci = map(potDeger, 0, 1023, 0, 180);\n  microServo.write(aci);\n\n  Serial.print(\"Pot: \"); Serial.print(potDeger);\n  Serial.print(\" -> Aci: \"); Serial.println(aci);\n  delay(15);\n}"
+  },
+  "l298n-dc-motor": {
+    "kategori": "Motor & Sürücü",
+    "baslik": "L298N Sürücü ile DC Motor Hız ve Yön Kontrolü",
+    "kutuphaneler": "Harici kütüphaneye gerek yoktur.",
+    "baglanti": [
+      {
+        "bilesen": "L298N 12V Klemens",
+        "pin": "Harici Pil / Adaptör Artı (+)"
+      },
+      {
+        "bilesen": "L298N GND Klemens",
+        "pin": "Arduino GND VE Harici Pil Eksi (-) Ortak Toprak"
+      },
+      {
+        "bilesen": "L298N ENA (Jumper Çıkarılır)",
+        "pin": "Dijital Pin 9 (PWM)"
+      },
+      {
+        "bilesen": "L298N IN1",
+        "pin": "Dijital Pin 8"
+      },
+      {
+        "bilesen": "L298N IN2",
+        "pin": "Dijital Pin 7"
+      },
+      {
+        "bilesen": "Motor OUT1 - OUT2",
+        "pin": "DC Motor Klemenslerine"
+      }
+    ],
+    "kod": "const int enaPin = 9;\nconst int in1Pin = 8;\nconst int in2Pin = 7;\n\nvoid setup() {\n  pinMode(enaPin, OUTPUT);\n  pinMode(in1Pin, OUTPUT);\n  pinMode(in2Pin, OUTPUT);\n}\n\nvoid motorSur(int yon, int hiz) {\n  analogWrite(enaPin, hiz);\n  if (yon == 1) {\n    digitalWrite(in1Pin, HIGH); digitalWrite(in2Pin, LOW);\n  } else if (yon == -1) {\n    digitalWrite(in1Pin, LOW); digitalWrite(in2Pin, HIGH);\n  } else {\n    digitalWrite(in1Pin, LOW); digitalWrite(in2Pin, LOW);\n  }\n}\n\nvoid loop() {\n  motorSur(1, 255); delay(2000); // İleri Tam Hız\n  motorSur(0, 0);   delay(1000); // Dur\n  motorSur(-1, 150); delay(2000); // Geri Yarım Hız\n  motorSur(0, 0);   delay(1000);\n}"
+  },
+  "step-motor-uln2003": {
+    "kategori": "Motor & Sürücü",
+    "baslik": "28BYJ-48 Step Motor ve ULN2003 Hassas Tur",
+    "kutuphaneler": "<Stepper.h> (Arduino dahili kütüphanesi)",
+    "baglanti": [
+      {
+        "bilesen": "ULN2003 IN1",
+        "pin": "Arduino Pin 8"
+      },
+      {
+        "bilesen": "ULN2003 IN2",
+        "pin": "Arduino Pin 9"
+      },
+      {
+        "bilesen": "ULN2003 IN3",
+        "pin": "Arduino Pin 10"
+      },
+      {
+        "bilesen": "ULN2003 IN4",
+        "pin": "Arduino Pin 11"
+      },
+      {
+        "bilesen": "ULN2003 5V-12V (+)",
+        "pin": "Harici 5V Güç Kaynağı (+)"
+      },
+      {
+        "bilesen": "ULN2003 GND (-)",
+        "pin": "Harici Güç GND ve Arduino GND (Ortak)"
+      }
+    ],
+    "kod": "#include <Stepper.h>\n\nconst int ADIM_SAYISI = 2048;\nStepper adimMotoru(ADIM_SAYISI, 8, 10, 9, 11);\n\nvoid setup() {\n  adimMotoru.setSpeed(12);\n}\n\nvoid loop() {\n  adimMotoru.step(ADIM_SAYISI); // 1 Tam Tur\n  delay(1000);\n  adimMotoru.step(-ADIM_SAYISI / 2); // Yarım Tur Geri\n  delay(1000);\n}"
+  },
+  "aktif-buzzer-kesik": {
+    "kategori": "Ses & Uyarı",
+    "baslik": "Aktif Buzzer ile Kesikli Acil Durum Sireni",
+    "kutuphaneler": "Harici kütüphaneye gerek yoktur.",
+    "baglanti": [
+      {
+        "bilesen": "Aktif Buzzer (+ Uzun)",
+        "pin": "Arduino Dijital Pin 8"
+      },
+      {
+        "bilesen": "Aktif Buzzer (- Kısa)",
+        "pin": "Arduino GND"
+      }
+    ],
+    "kod": "const int buzzerPin = 8;\n\nvoid setup() {\n  pinMode(buzzerPin, OUTPUT);\n}\n\nvoid bip(int tekrar, int sure, int duraklama) {\n  for (int i = 0; i < tekrar; i++) {\n    digitalWrite(buzzerPin, HIGH); delay(sure);\n    digitalWrite(buzzerPin, LOW); delay(duraklama);\n  }\n}\n\nvoid loop() {\n  bip(3, 80, 80);\n  delay(1000);\n  bip(1, 600, 100);\n  delay(2000);\n}"
+  },
+  "pasif-buzzer-nota": {
+    "kategori": "Ses & Uyarı",
+    "baslik": "Pasif Buzzer ile Frekans Tabanlı Melodi Çalma",
+    "kutuphaneler": "Harici kütüphaneye gerek yoktur.",
+    "baglanti": [
+      {
+        "bilesen": "Pasif Buzzer (+)",
+        "pin": "Dijital Pin 8"
+      },
+      {
+        "bilesen": "Pasif Buzzer (-)",
+        "pin": "Arduino GND (100Ω Dirençle)"
+      }
+    ],
+    "kod": "#define NOTE_C4 262\n#define NOTE_D4 294\n#define NOTE_E4 330\n#define NOTE_F4 349\n#define NOTE_G4 392\n#define NOTE_A4 440\n#define NOTE_B4 494\n#define NOTE_C5 523\n\nconst int buzzerPin = 8;\nint melodi[] = { NOTE_C4, NOTE_D4, NOTE_E4, NOTE_F4, NOTE_G4, NOTE_A4, NOTE_B4, NOTE_C5 };\nint sureler[] = { 4, 4, 4, 4, 4, 4, 4, 2 };\n\nvoid setup() {\n  for (int i = 0; i < 8; i++) {\n    int notaSuresi = 1000 / sureler[i];\n    tone(buzzerPin, melodi[i], notaSuresi);\n    int bekleme = notaSuresi * 1.30;\n    delay(bekleme);\n    noTone(buzzerPin);\n  }\n}\n\nvoid loop() {}"
+  },
+  "lcd-i2c-1602": {
+    "kategori": "Ekran & Gösterge",
+    "baslik": "16x2 Karakter LCD & PCF8574 I2C Modülü",
+    "kutuphaneler": "<Wire.h> ve LiquidCrystal_I2C",
+    "baglanti": [
+      {
+        "bilesen": "I2C Modülü GND",
+        "pin": "Arduino GND"
+      },
+      {
+        "bilesen": "I2C Modülü VCC",
+        "pin": "Arduino 5V"
+      },
+      {
+        "bilesen": "I2C Modülü SDA",
+        "pin": "Arduino Uno A4 (Mega'da Pin 20)"
+      },
+      {
+        "bilesen": "I2C Modülü SCL",
+        "pin": "Arduino Uno A5 (Mega'da Pin 21)"
+      }
+    ],
+    "kod": "#include <Wire.h>\n#include <LiquidCrystal_I2C.h>\n\nLiquidCrystal_I2C lcd(0x27, 16, 2);\n\nvoid setup() {\n  lcd.init();\n  lcd.backlight();\n  lcd.setCursor(0, 0);\n  lcd.print(\">> ARDUKOD v1.0 <<\");\n  lcd.setCursor(0, 1);\n  lcd.print(\"Sistem Hazir...\");\n  delay(2000);\n}\n\nint sayac = 0;\n\nvoid loop() {\n  lcd.clear();\n  lcd.setCursor(0, 0);\n  lcd.print(\"Calisma Suresi:\");\n  lcd.setCursor(0, 1);\n  lcd.print(sayac);\n  lcd.print(\" Saniye\");\n  sayac++;\n  delay(1000);\n}"
+  },
+  "oled-i2c-ssd1306": {
+    "kategori": "Ekran & Gösterge",
+    "baslik": "0.96 inç Grafik I2C OLED Ekran (128x64)",
+    "kutuphaneler": "<Wire.h>, <Adafruit_GFX.h> ve <Adafruit_SSD1306.h>",
+    "baglanti": [
+      {
+        "bilesen": "OLED VCC",
+        "pin": "Arduino 5V (veya 3.3V)"
+      },
+      {
+        "bilesen": "OLED GND",
+        "pin": "Arduino GND"
+      },
+      {
+        "bilesen": "OLED SCL",
+        "pin": "Arduino Analog Pin A5"
+      },
+      {
+        "bilesen": "OLED SDA",
+        "pin": "Arduino Analog Pin A4"
+      }
+    ],
+    "kod": "#include <Wire.h>\n#include <Adafruit_GFX.h>\n#include <Adafruit_SSD1306.h>\n\n#define EKRAN_GENISLIK 128\n#define EKRAN_YUKSEKLIK 64\n#define OLED_RESET -1 \n\nAdafruit_SSD1306 ekran(EKRAN_GENISLIK, EKRAN_YUKSEKLIK, &Wire, OLED_RESET);\n\nvoid setup() {\n  if (!ekran.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {\n    for (;;);\n  }\n  ekran.clearDisplay();\n  ekran.setTextSize(1);\n  ekran.setTextColor(SSD1306_WHITE);\n  ekran.setCursor(18, 0);\n  ekran.println(\"ARDUINO OLEDI\");\n  ekran.drawLine(0, 10, 128, 10, SSD1306_WHITE);\n\n  ekran.setTextSize(2);\n  ekran.setCursor(20, 24);\n  ekran.print(\"24.8 C\");\n\n  ekran.setTextSize(1);\n  ekran.setCursor(10, 52);\n  ekran.println(\"Sistem Durumu: OK\");\n  ekran.display();\n}\n\nvoid loop() {}"
+  },
+  "role-220v-kontrol": {
+    "kategori": "Güç & Röle",
+    "baslik": "5V Tek Kanal Röle Modülü ile Yüksek Güç Kontrolü",
+    "kutuphaneler": "Harici kütüphaneye gerek yoktur.",
+    "baglanti": [
+      {
+        "bilesen": "Röle VCC",
+        "pin": "Arduino 5V"
+      },
+      {
+        "bilesen": "Röle GND",
+        "pin": "Arduino GND"
+      },
+      {
+        "bilesen": "Röle IN (Kontrol Sinyali)",
+        "pin": "Arduino Dijital Pin 7"
+      },
+      {
+        "bilesen": "Röle COM (Ortak Uç)",
+        "pin": "Harici Şebeke Faz Kablosu"
+      },
+      {
+        "bilesen": "Röle NO (Normalde Açık)",
+        "pin": "Lambaya Giden Faz Kablosu"
+      }
+    ],
+    "kod": "const int rolePin = 7;\n\nvoid setup() {\n  pinMode(rolePin, OUTPUT);\n  digitalWrite(rolePin, HIGH); // Ilk acilista kapali (Active-LOW)\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  digitalWrite(rolePin, LOW); // Role CEKILDI\n  Serial.println(\"YUK ACIK\");\n  delay(5000);\n\n  digitalWrite(rolePin, HIGH); // Role BIRAKILDI\n  Serial.println(\"YUK KAPALI\");\n  delay(5000);\n}"
+  },
+  "bluetooth-hc05-terminal": {
+    "kategori": "Haberleşme",
+    "baslik": "HC-05 Bluetooth Seri Port İletişimi (SoftwareSerial)",
+    "kutuphaneler": "<SoftwareSerial.h> (Arduino dahili kütüphanesi)",
+    "baglanti": [
+      {
+        "bilesen": "HC-05 VCC",
+        "pin": "Arduino 5V"
+      },
+      {
+        "bilesen": "HC-05 GND",
+        "pin": "Arduino GND"
+      },
+      {
+        "bilesen": "HC-05 TXD",
+        "pin": "Arduino Dijital Pin 10 (Yazılımsal RX)"
+      },
+      {
+        "bilesen": "HC-05 RXD (3.3V Lojik)",
+        "pin": "Arduino Pin 11 -> 1kΩ ve 2kΩ Direnç Bölücü ile"
+      },
+      {
+        "bilesen": "Kontrol Edilen LED",
+        "pin": "Dijital Pin 13"
+      }
+    ],
+    "kod": "#include <SoftwareSerial.h>\n\nSoftwareSerial btHatti(10, 11);\nconst int ledPin = 13;\n\nvoid setup() {\n  pinMode(ledPin, OUTPUT);\n  Serial.begin(9600);\n  btHatti.begin(9600);\n  Serial.println(\"Bluetooth Hazir...\");\n}\n\nvoid loop() {\n  if (btHatti.available()) {\n    char komut = btHatti.read();\n    if (komut == '1') {\n      digitalWrite(ledPin, HIGH);\n      btHatti.println(\"LED YANDI\");\n    } else if (komut == '0') {\n      digitalWrite(ledPin, LOW);\n      btHatti.println(\"LED SONDU\");\n    }\n  }\n\n  if (Serial.available()) {\n    btHatti.write(Serial.read());\n  }\n}"
+  }
+}

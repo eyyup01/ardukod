@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>ArduKod - Admin Girişi</title>
+    <style>
+        body {
+            background-color: #0d1117;
+            color: #f0f6fc;
+            font-family: sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-card {
+            background: #161b22;
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            width: 300px;
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 15px 0;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: white;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #00979d;
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background: #00b4bd; }
+        a { color: #8b949e; text-decoration: none; font-size: 13px; display: block; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h3>⚡ Admin Girişi</h3>
+        <input type="password" id="sifreInput" placeholder="Yönetici Şifresi">
+        <button onclick="girisYap()">Giriş Yap</button>
+        <a href="/">← Siteye Dön</a>
+    </div>
+
+    <script>
+        async function girisYap() {
+            const sifre = document.getElementById('sifreInput').value;
+            const res = await fetch('/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sifre })
+            });
+            const data = await res.json();
+            if (data.durum === 'basarili') {
+                window.location.reload();
+            } else {
+                alert(data.mesaj);
+            }
+        }
+    </script>
+</body>
+</html>

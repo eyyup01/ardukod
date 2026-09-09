@@ -2,9 +2,9 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ArduKod - Arduino Geliştirici Kütüphanesi</title>
-    <!-- Prism.js Arduino Syntax Highlighting -->
+    <!-- Prism.js C++ Syntax Highlighting -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <style>
         :root {
@@ -27,6 +27,33 @@
             height: 100vh;
             overflow: hidden;
         }
+
+        /* MOBİL ÜST BAR (Sadece mobilde görünür) */
+        .mobile-navbar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0 16px;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+        .menu-toggle-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            font-size: 20px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* SOL MENÜ (SIDEBAR) */
         .sidebar {
             width: 320px;
             background-color: var(--panel-bg);
@@ -34,9 +61,11 @@
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
+            transition: transform 0.3s ease;
+            z-index: 99;
         }
         .sidebar-header {
-            padding: 18px 20px;
+            padding: 16px 20px;
             border-bottom: 1px solid var(--border);
         }
         .header-top {
@@ -48,6 +77,9 @@
             margin: 0;
             color: var(--primary);
             font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         .admin-link {
             color: var(--text-sub);
@@ -64,7 +96,7 @@
         }
         .search-input {
             width: 100%;
-            margin-top: 14px;
+            margin-top: 12px;
             padding: 9px 12px;
             background-color: var(--bg-color);
             border: 1px solid var(--border);
@@ -90,22 +122,25 @@
             padding-left: 6px;
         }
         .project-item {
-            padding: 8px 12px;
+            padding: 9px 12px;
             border-radius: 6px;
             color: var(--text-main);
             cursor: pointer;
             font-size: 13.5px;
             transition: 0.15s;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
         .project-item:hover { background-color: rgba(0, 151, 157, 0.15); color: var(--primary-hover); }
         .project-item.active { background-color: var(--primary); color: #fff; font-weight: 500; }
+
+        /* SAĞ İÇERİK ALANI */
         .content {
             flex: 1;
             padding: 30px 40px;
             overflow-y: auto;
+            width: 100%;
         }
-        .project-title { font-size: 24px; color: var(--text-main); margin-top: 0; margin-bottom: 16px; }
+        .project-title { font-size: 24px; color: var(--text-main); margin-top: 0; margin-bottom: 16px; line-height: 1.3; }
         .section-label {
             font-size: 14px;
             color: var(--primary);
@@ -116,13 +151,17 @@
             align-items: center;
             gap: 6px;
         }
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background-color: var(--panel-bg);
+        }
         table {
             width: 100%;
             border-collapse: collapse;
-            background-color: var(--panel-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid var(--border);
+            min-width: 320px;
         }
         th, td {
             padding: 10px 14px;
@@ -130,7 +169,7 @@
             border-bottom: 1px solid var(--border);
             font-size: 13.5px;
         }
-        th { background-color: rgba(255, 255, 255, 0.02); color: var(--text-sub); }
+        th { background-color: rgba(255, 255, 255, 0.03); color: var(--text-sub); }
         td.pin-cell { color: var(--accent-green); font-family: monospace; font-weight: bold; }
         .code-container { position: relative; margin-top: 10px; }
         pre[class*="language-"] {
@@ -138,6 +177,7 @@
             border-radius: 8px;
             border: 1px solid var(--border);
             font-size: 13px;
+            max-height: 500px;
         }
         .copy-btn {
             position: absolute;
@@ -153,11 +193,76 @@
             z-index: 10;
         }
         .copy-btn:hover { color: #fff; border-color: var(--primary); }
+
+        /* MOBİL KARARTMA KATMANI */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 98;
+        }
+
+        /* MOBİL DUYARLILIK (RESPONSIVE STYLES) */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                height: 100%;
+                overflow-y: auto;
+            }
+            .mobile-navbar {
+                display: flex;
+            }
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: 85%;
+                max-width: 310px;
+                transform: translateX(-100%);
+                box-shadow: 2px 0 16px rgba(0, 0, 0, 0.5);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .sidebar-overlay.active {
+                display: block;
+            }
+            .content {
+                padding: 70px 16px 30px 16px;
+                overflow: visible;
+            }
+            .project-title {
+                font-size: 20px;
+            }
+            th, td {
+                padding: 8px 10px;
+                font-size: 12.5px;
+            }
+            pre[class*="language-"] {
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>
 
-<div class="sidebar">
+<!-- Mobil Üst Bar -->
+<div class="mobile-navbar">
+    <button class="menu-toggle-btn" onclick="menuyuAcKapat()">☰</button>
+    <div style="font-weight: bold; color: var(--primary);">⚡ ArduKod</div>
+    <a href="/admin" class="admin-link">⚙ Admin</a>
+</div>
+
+<!-- Arka Plan Karartması (Mobilde menü açıkken dokununca kapansın diye) -->
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="menuyuKapat()"></div>
+
+<!-- Sol Menü -->
+<div id="sidebar" class="sidebar">
     <div class="sidebar-header">
         <div class="header-top">
             <h2>⚡ ArduKod</h2>
@@ -168,6 +273,7 @@
     <div id="projectList" class="project-list"></div>
 </div>
 
+<!-- Sağ İçerik Alanı -->
 <div class="content">
     <div id="detailView">
         <h1 id="pBaslik" class="project-title">Yükleniyor...</h1>
@@ -176,15 +282,17 @@
         <p id="pKutuphane" style="color: var(--text-sub); margin: 0; font-size: 14px;"></p>
 
         <div class="section-label">🔌 Pin Bağlantı Tablosu</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Bileşen / Pin</th>
-                    <th>Arduino Bağlantısı</th>
-                </tr>
-            </thead>
-            <tbody id="pTablo"></tbody>
-        </table>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Bileşen / Pin</th>
+                        <th>Arduino Bağlantısı</th>
+                    </tr>
+                </thead>
+                <tbody id="pTablo"></tbody>
+            </table>
+        </div>
 
         <div class="section-label">💻 Arduino C++ Kodu</div>
         <div class="code-container">
@@ -200,6 +308,17 @@
 
 <script>
     let tumProjeler = [];
+
+    // Mobil menü aç/kapa
+    function menuyuAcKapat() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('active');
+    }
+
+    function menuyuKapat() {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('active');
+    }
 
     window.onload = async () => {
         const res = await fetch('/projeler');
@@ -226,7 +345,10 @@
                 item.className = 'project-item';
                 item.innerText = p.baslik;
                 item.id = `item-${p.id}`;
-                item.onclick = () => projeYukle(p.id);
+                item.onclick = () => {
+                    projeYukle(p.id);
+                    menuyuKapat(); // Mobilde bir projeye basınca menüyü kapat
+                };
                 grupDiv.appendChild(item);
             });
             listDiv.appendChild(grupDiv);

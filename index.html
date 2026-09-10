@@ -40,15 +40,7 @@
             flex-shrink: 0;
             z-index: 100;
         }
-        .brand {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--primary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+        .brand { font-size: 18px; font-weight: bold; color: var(--primary); cursor: pointer; display: flex; align-items: center; gap: 6px; }
         .nav-actions { display: flex; align-items: center; gap: 8px; }
         .hub-btn {
             background-color: rgba(0, 151, 157, 0.15);
@@ -84,14 +76,14 @@
 
         /* WORKSPACE */
         .workspace-view { display: flex; height: 100%; overflow: hidden; }
-        .sidebar { width: 300px; background-color: var(--panel-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar { width: 320px; background-color: var(--panel-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
         .search-area { padding: 12px 16px; border-bottom: 1px solid var(--border); }
         .project-list { flex: 1; overflow-y: auto; padding: 12px; }
         .category-group { margin-bottom: 14px; }
         .category-title { font-size: 11px; text-transform: uppercase; color: var(--text-sub); font-weight: bold; margin-bottom: 6px; }
-        .project-item { padding: 9px 12px; border-radius: 6px; color: var(--text-main); cursor: pointer; font-size: 13.5px; margin-bottom: 3px; }
+        .project-item { padding: 9px 12px; border-radius: 6px; color: var(--text-main); cursor: pointer; font-size: 13px; margin-bottom: 3px; line-height: 1.3; }
         .project-item:hover { background-color: rgba(0, 151, 157, 0.15); }
-        .project-item.active { background-color: var(--primary); color: #fff; }
+        .project-item.active { background-color: var(--primary); color: #fff; font-weight: bold; }
 
         .content { flex: 1; padding: 24px 35px; overflow-y: auto; width: 100%; }
         .project-title { font-size: 24px; margin: 0 0 8px 0; }
@@ -127,7 +119,7 @@
 
 <div class="main-container">
 
-    <!-- 1. HUB -->
+    <!-- HUB -->
     <div id="hubView" class="view-section active">
         <div class="hub-wrapper">
             <h1 class="hub-title">Geliştirici & Maker Merkezi</h1>
@@ -142,7 +134,7 @@
         </div>
     </div>
 
-    <!-- 2. TOOLS -->
+    <!-- TOOLS -->
     <div id="toolsView" class="view-section">
         <div class="tools-wrapper">
             <div class="tool-card">
@@ -221,7 +213,7 @@
         </div>
     </div>
 
-    <!-- 3. WORKSPACE -->
+    <!-- WORKSPACE -->
     <div id="workspaceView" class="view-section">
         <div class="workspace-view">
             <div class="sidebar">
@@ -273,8 +265,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
 
 <script>
-    let tumProjeler = [];
-    let aktifProjeVerisi = null;
+    // TÜM VERİ SAYFA AÇILINCA HAFIZAYA (RAM) ALINIR -> SIFIR GECİKME!
+    let VERI_HAVUZU = {};
     let aktifKart = 'uno';
     let aktifProjeId = '';
 
@@ -296,24 +288,30 @@
 
     window.onload = async () => {
         try {
-            const res = await fetch('/projeler');
-            tumProjeler = await res.json();
-            listeyiCiz(tumProjeler);
-            if (tumProjeler.length > 0) projeYukle(tumProjeler[0].id);
+            // Tek seferlik toplu veri çekimi
+            const res = await fetch('/projeler-tam-veri');
+            VERI_HAVUZU = await res.json();
+            
+            listeyiOlustur(VERI_HAVUZU);
+            
+            const ilkId = Object.keys(VERI_HAVUZU)[0];
+            if (ilkId) projeSec(ilkId);
         } catch (e) {
-            console.error("Projeler alinamadi:", e);
+            console.error("Veri yukleme hatasi:", e);
         }
         dipHesapla(); smdHesapla(); capHesapla();
     };
 
-    function listeyiCiz(projeler) {
+    function listeyiOlustur(havuz) {
         const listDiv = document.getElementById('projectList');
         listDiv.innerHTML = '';
         const gruplar = {};
-        projeler.forEach(p => {
-            if (!gruplar[p.kategori]) gruplar[p.kategori] = [];
-            gruplar[p.kategori].push(p);
-        });
+
+        for (const [id, p] of Object.entries(havuz)) {
+            const kat = p.kategori || 'Genel';
+            if (!gruplar[kat]) gruplar[kat] = [];
+            gruplar[kat].push({ id, ...p });
+        }
 
         for (const [kat, items] of Object.entries(gruplar)) {
             const grupDiv = document.createElement('div');
@@ -324,46 +322,41 @@
                 item.className = 'project-item';
                 item.innerText = p.baslik;
                 item.id = `item-${p.id}`;
-                item.onclick = () => projeYukle(p.id);
+                // Tıklandığı an sunucuya gitmez, hafızadan anında yükler
+                item.onclick = () => projeSec(p.id);
                 grupDiv.appendChild(item);
             });
             listDiv.appendChild(grupDiv);
         }
     }
 
-    async function projeYukle(id) {
+    // GECİKMESİZ DOĞRUDAN BELLEKTEN YÜKLEME
+    function projeSec(id) {
         aktifProjeId = id;
         document.querySelectorAll('.project-item').forEach(el => el.classList.remove('active'));
         const secili = document.getElementById(`item-${id}`);
         if (secili) secili.classList.add('active');
 
-        try {
-            const res = await fetch(`/proje/${id}`);
-            const data = await res.json();
+        const p = VERI_HAVUZU[id];
+        if (!p) return;
 
-            if (data.durum === 'basarili' && data.veri) {
-                aktifProjeVerisi = data.veri;
-                document.getElementById('pBaslik').innerText = data.veri.baslik || 'Proje Detayı';
-                document.getElementById('pMeta').innerText = `⏱️ ${data.veri.sure || '10 Dk'} | 🟢 ${data.veri.zorluk || 'Başlangıç'} | 📁 ${data.veri.kategori || 'Genel'}`;
+        document.getElementById('pBaslik').innerText = p.baslik;
+        document.getElementById('pMeta').innerText = `⏱️ ${p.sure || '10 Dk'} | 🟢 ${p.zorluk || 'Başlangıç'} | 📁 ${p.kategori || 'Genel'}`;
 
-                const matDiv = document.getElementById('pMalzemeler');
-                matDiv.innerHTML = '';
-                (data.veri.malzemeler || []).forEach(m => {
-                    const box = document.createElement('div');
-                    box.className = 'material-item';
-                    let linkBtn = '';
-                    if (m.link && m.link.startsWith('http')) {
-                        linkBtn = `<a href="${m.link}" target="_blank" class="btn-buy">🛒 Satın Al</a>`;
-                    }
-                    box.innerHTML = `<div><span class="material-qty">${m.adet || '1x'}</span><span>${m.isim}</span></div>${linkBtn}`;
-                    matDiv.appendChild(box);
-                });
-
-                kartGoster(aktifKart);
+        const matDiv = document.getElementById('pMalzemeler');
+        matDiv.innerHTML = '';
+        (p.malzemeler || []).forEach(m => {
+            const box = document.createElement('div');
+            box.className = 'material-item';
+            let linkBtn = '';
+            if (m.link && m.link.startsWith('http')) {
+                linkBtn = `<a href="${m.link}" target="_blank" class="btn-buy">🛒 Satın Al</a>`;
             }
-        } catch (e) {
-            console.error("Proje yükleme hatasi:", e);
-        }
+            box.innerHTML = `<div><span class="material-qty">${m.adet || '1x'}</span><span>${m.isim}</span></div>${linkBtn}`;
+            matDiv.appendChild(box);
+        });
+
+        kartGoster(aktifKart);
     }
 
     function kartSec(kartAdi) {
@@ -375,8 +368,10 @@
     }
 
     function kartGoster(kartAdi) {
-        if (!aktifProjeVerisi || !aktifProjeVerisi.kartlar) return;
-        const kartBilgisi = aktifProjeVerisi.kartlar[kartAdi] || aktifProjeVerisi.kartlar['uno'] || {};
+        const p = VERI_HAVUZU[aktifProjeId];
+        if (!p || !p.kartlar) return;
+
+        const kartBilgisi = p.kartlar[kartAdi] || p.kartlar['uno'] || {};
 
         document.getElementById('pKutuphane').innerText = kartBilgisi.kutuphaneler || 'Harici kütüphane gerekmez.';
 
@@ -389,13 +384,19 @@
         });
 
         const kodEl = document.getElementById('pKod');
-        kodEl.textContent = kartBilgisi.kod || '// Kod hazirlaniyor...';
+        kodEl.textContent = kartBilgisi.kod || '// Bu kart icin kod hazirlaniyor...';
         Prism.highlightElement(kodEl);
     }
 
     document.getElementById('searchInput').addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase();
-        listeyiCiz(tumProjeler.filter(p => p.baslik.toLowerCase().includes(val) || p.kategori.toLowerCase().includes(val)));
+        const filtrelenmis = {};
+        for (const [id, p] of Object.entries(VERI_HAVUZU)) {
+            if (p.baslik.toLowerCase().includes(val) || (p.kategori && p.kategori.toLowerCase().includes(val))) {
+                filtrelenmis[id] = p;
+            }
+        }
+        listeyiOlustur(filtrelenmis);
     });
 
     function koduKopyala() {
@@ -404,6 +405,7 @@
 
     function inoIndir() {
         const kodMetni = document.getElementById('pKod').textContent;
+        fetch(`/proje/${aktifProjeId}/indir`, { method: 'POST' });
         const blob = new Blob([kodMetni], { type: 'text/plain;charset=utf-8' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
@@ -411,13 +413,9 @@
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
-    // DIP HESAPLA
+    // DİRENÇ VE KONDANSATÖR FONKSİYONLARI (SIFIR GECİKME)
     function dipHesapla() {
-        const b1 = document.getElementById('dip-b1');
-        const b2 = document.getElementById('dip-b2');
-        const b3 = document.getElementById('dip-b3');
-        const b4 = document.getElementById('dip-b4');
-
+        const b1 = document.getElementById('dip-b1'), b2 = document.getElementById('dip-b2'), b3 = document.getElementById('dip-b3'), b4 = document.getElementById('dip-b4');
         document.getElementById('band1-view').style.background = b1.options[b1.selectedIndex].dataset.color;
         document.getElementById('band2-view').style.background = b2.options[b2.selectedIndex].dataset.color;
         document.getElementById('band3-view').style.background = b3.options[b3.selectedIndex].dataset.color;
@@ -432,7 +430,6 @@
         document.getElementById('dipSonuc').innerText = `${formatted} ${b4.value}`;
     }
 
-    // SMD HESAPLA
     function smdHesapla() {
         let code = (document.getElementById('smdInput').value.trim() || "110").toUpperCase();
         const out = document.getElementById('smdSonuc');
@@ -451,7 +448,6 @@
         out.innerText = 'Geçersiz Kod (110, 4R7, 1002)';
     }
 
-    // KONDANSATÖR HESAPLA
     function capHesapla() {
         let raw = (document.getElementById('capInput').value.trim() || "104").toUpperCase();
         const out = document.getElementById('capSonuc');

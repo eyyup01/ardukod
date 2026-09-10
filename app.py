@@ -3,11 +3,11 @@ import json
 from flask import Flask, request, jsonify, session, redirect, render_template_string
 
 app = Flask(__name__)
-app.secret_key = "ardukod_muhendislik_tam_surum_2026"
+app.secret_key = "ardukod_muhendislik_portal_final_2026_tam"
 ADMIN_SIFRE = "admin123"
 
 # ==============================================================================
-# ENDÜSTRİYEL SEVİYEDE TAM C++ KODLARI & PİN TABLOLARI (HER KART İÇİN ÖZEL)
+# TAM TEŞEKKÜLLÜ, DETAYLI VE ÇALIŞAN 15+ MÜHENDİSLİK PROJESİ (4 KART UYUMLU)
 # ==============================================================================
 PROJELER = {
     "kara-simsek": {
@@ -16,7 +16,7 @@ PROJELER = {
         "zorluk": "Başlangıç",
         "sure": "10 Dk",
         "malzemeler": [
-            {"adet": "5x", "isim": "5mm Parlak Kırmızı LED", "link": "https://www.direnc.net"},
+            {"adet": "5x", "isim": "5mm Kırmızı LED", "link": "https://www.direnc.net"},
             {"adet": "5x", "isim": "220Ω / 330Ω Direnç", "link": "https://www.direnc.net"},
             {"adet": "1x", "isim": "Breadboard", "link": "https://www.direnc.net"},
             {"adet": "6x", "isim": "Jumper Kablo", "link": "https://www.direnc.net"}
@@ -29,23 +29,22 @@ PROJELER = {
                     {"bilesen": "LED 1-5 Katotları (-)", "pin": "GND (Ortak Hat)"}
                 ],
                 "kod": """/*
- * ArduKod Mühendislik Portalı - 5 LED Kara Şimşek (Knight Rider)
+ * ArduKod - 5 LED Kara Şimşek
  * Platform: Arduino Uno (ATmega328P - 5V)
- * Mimari: Non-blocking (Asenkron) millis() Zamanlayıcı & Durum Makinesi
+ * Mimari: Non-blocking millis() Zamanlayıcı
  */
 
 const uint8_t LED_PINLERI[] = {2, 3, 4, 5, 6};
 const uint8_t TOPLAM_LED = 5;
-const unsigned long ADIM_SURESI_MS = 65; // Kayma periyodu
+const unsigned long ADIM_SURESI_MS = 65;
 
 int8_t aktifIndeks = 0;
-int8_t yon = 1; // +1: İleri, -1: Geri
+int8_t yon = 1;
 unsigned long sonGuncelleme = 0;
 
 void setup() {
   Serial.begin(9600);
-  Serial.println(F("[BAŞLATILDI] 5 LED Kara Şimşek - Asenkron Çalışma"));
-
+  Serial.println(F("[BAŞLATILDI] 5 LED Kara Şimşek"));
   for (uint8_t i = 0; i < TOPLAM_LED; i++) {
     pinMode(LED_PINLERI[i], OUTPUT);
     digitalWrite(LED_PINLERI[i], LOW);
@@ -54,31 +53,14 @@ void setup() {
 
 void loop() {
   unsigned long simdikiZaman = millis();
-
-  // Non-blocking timer: delay() yerine işlemciyi serbest bırakan kontrol
   if (simdikiZaman - sonGuncelleme >= ADIM_SURESI_MS) {
     sonGuncelleme = simdikiZaman;
-
-    // Önceki aktif LED'i söndür
     digitalWrite(LED_PINLERI[aktifIndeks], LOW);
-
-    // Yeni indekse geç
     aktifIndeks += yon;
-
-    // Sınır kontrolleri ve yön çevrimi
-    if (aktifIndeks >= TOPLAM_LED - 1) {
-      aktifIndeks = TOPLAM_LED - 1;
-      yon = -1;
-    } else if (aktifIndeks <= 0) {
-      aktifIndeks = 0;
-      yon = 1;
-    }
-
-    // Yeni aktif LED'i yak
+    if (aktifIndeks >= TOPLAM_LED - 1) { aktifIndeks = TOPLAM_LED - 1; yon = -1; }
+    else if (aktifIndeks <= 0) { aktifIndeks = 0; yon = 1; }
     digitalWrite(LED_PINLERI[aktifIndeks], HIGH);
   }
-
-  // İşlemci burada başka görevleri ve sensör okumalarını donmadan yürütebilir.
 }"""
             },
             "nano": {
@@ -87,107 +69,55 @@ void loop() {
                     {"bilesen": "LED 1-5 Anotları (+)", "pin": "D2, D3, D4, D5, D6 (220Ω Seri)"},
                     {"bilesen": "LED 1-5 Katotları (-)", "pin": "Nano GND"}
                 ],
-                "kod": """/*
- * ArduKod Mühendislik Portalı - 5 LED Kara Şimşek
- * Platform: Arduino Nano (ATmega328P - 5V)
- * Mimari: millis() Tabanlı Kesintisiz Zamanlama
- */
-
-const uint8_t ledDizisi[] = {2, 3, 4, 5, 6};
-const uint8_t ledAdet = 5;
-const unsigned long periyotMs = 60;
-
-int8_t sira = 0;
-int8_t artis = 1;
-unsigned long zamanTakip = 0;
+                "kod": """/* ArduKod - Kara Şimşek (Arduino Nano) */
+const uint8_t pinler[] = {2, 3, 4, 5, 6};
+const uint8_t adet = 5;
+unsigned long t = 0;
+int sira = 0, artis = 1;
 
 void setup() {
-  for (uint8_t i = 0; i < ledAdet; i++) {
-    pinMode(ledDizisi[i], OUTPUT);
-    digitalWrite(ledDizisi[i], LOW);
-  }
+  for(uint8_t i=0; i<adet; i++) pinMode(pinler[i], OUTPUT);
 }
 
 void loop() {
-  if (millis() - zamanTakip >= periyotMs) {
-    zamanTakip = millis();
-
-    digitalWrite(ledDizisi[sira], LOW);
+  if (millis() - t >= 60) {
+    t = millis();
+    digitalWrite(pinler[sira], LOW);
     sira += artis;
-
-    if (sira >= ledAdet - 1) {
-      sira = ledAdet - 1;
-      artis = -1;
-    } else if (sira <= 0) {
-      sira = 0;
-      artis = 1;
-    }
-
-    digitalWrite(ledDizisi[sira], HIGH);
+    if (sira >= adet - 1) { sira = adet - 1; artis = -1; }
+    else if (sira <= 0) { sira = 0; artis = 1; }
+    digitalWrite(pinler[sira], HIGH);
   }
 }"""
             },
             "esp32": {
-                "kutuphaneler": "Harici kütüphane gerekmez (Dahili FreeRTOS SDK).",
+                "kutuphaneler": "Harici kütüphane gerekmez (Dahili FreeRTOS).",
                 "baglanti": [
                     {"bilesen": "LED 1-5 Anotları (+)", "pin": "GPIO 18, 19, 21, 22, 23 (330Ω Seri)"},
                     {"bilesen": "LED 1-5 Katotları (-)", "pin": "ESP32 GND"}
                 ],
-                "kod": """/*
- * ArduKod Mühendislik Portalı - 5 LED Kara Şimşek
- * Platform: ESP32 DevKit V1 (3.3V Lojik)
- * Mimari: FreeRTOS Task & Gerilim Korumalı Pin Sürüşü
- */
+                "kod": """/* ArduKod - Kara Şimşek (ESP32 - 3.3V FreeRTOS) */
+const int pinler[] = {18, 19, 21, 22, 23};
+const int adet = 5;
 
-const int LEDLER[] = {18, 19, 21, 22, 23};
-const int ADET = 5;
-const TickType_t ADIM_TICK = pdMS_TO_TICKS(60);
-
-void karaSimsekGorevi(void *pvParameters) {
-  int indeks = 0;
-  int yon = 1;
-
-  for (;;) {
-    digitalWrite(LEDLER[indeks], HIGH);
-    vTaskDelay(ADIM_TICK); // FreeRTOS çekirdek gecikmesi, işlemciyi tüketmez
-    digitalWrite(LEDLER[indeks], LOW);
-
-    indeks += yon;
-    if (indeks >= ADET - 1) {
-      indeks = ADET - 1;
-      yon = -1;
-    } else if (indeks <= 0) {
-      indeks = 0;
-      yon = 1;
-    }
+void ledGorevi(void *pvParameters) {
+  int sira = 0, artis = 1;
+  for(;;) {
+    digitalWrite(pinler[sira], HIGH);
+    vTaskDelay(pdMS_TO_TICKS(60));
+    digitalWrite(pinler[sira], LOW);
+    sira += artis;
+    if (sira >= adet - 1) { sira = adet - 1; artis = -1; }
+    else if (sira <= 0) { sira = 0; artis = 1; }
   }
 }
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println("[ESP32] FreeRTOS LED Görevi Oluşturuluyor...");
-
-  for (int i = 0; i < ADET; i++) {
-    pinMode(LEDLER[i], OUTPUT);
-    digitalWrite(LEDLER[i], LOW);
-  }
-
-  // Görevi Çekirdek 1 üzerinde bağımsız bir thread olarak başlat
-  xTaskCreatePinnedToCore(
-    karaSimsekGorevi,
-    "KaraSimsekTask",
-    2048,
-    NULL,
-    1,
-    NULL,
-    1
-  );
+  for(int i=0; i<adet; i++) { pinMode(pinler[i], OUTPUT); digitalWrite(pinler[i], LOW); }
+  xTaskCreatePinnedToCore(ledGorevi, "LEDTask", 2048, NULL, 1, NULL, 1);
 }
 
-void loop() {
-  // Arka planda Wi-Fi veya Bluetooth görevleri çalışabilir
-  vTaskDelay(pdMS_TO_TICKS(1000));
-}"""
+void loop() { vTaskDelay(pdMS_TO_TICKS(1000)); }"""
             },
             "esp8266": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
@@ -195,44 +125,24 @@ void loop() {
                     {"bilesen": "LED 1-5 Anotları (+)", "pin": "D1, D2, D5, D6, D7 (GPIO 5,4,14,12,13)"},
                     {"bilesen": "LED 1-5 Katotları (-)", "pin": "NodeMCU GND"}
                 ],
-                "kod": """/*
- * ArduKod Mühendislik Portalı - 5 LED Kara Şimşek
- * Platform: NodeMCU ESP8266 (ESP-12E 3.3V)
- * Mimari: WDT (Watchdog Timer) Dostu Asenkron Döngü
- */
-
+                "kod": """/* ArduKod - Kara Şimşek (NodeMCU ESP8266) */
 const uint8_t pinler[] = {D1, D2, D5, D6, D7};
 const uint8_t adet = 5;
 unsigned long sonZaman = 0;
-int sira = 0;
-int artis = 1;
+int sira = 0, artis = 1;
 
 void setup() {
-  Serial.begin(115200);
-  for (uint8_t i = 0; i < adet; i++) {
-    pinMode(pinler[i], OUTPUT);
-    digitalWrite(pinler[i], LOW);
-  }
+  for(uint8_t i=0; i<adet; i++) pinMode(pinler[i], OUTPUT);
 }
 
 void loop() {
-  // ESP8266 arka plan WiFi ve Watchdog sıfırlaması için yield() çağrısı
-  yield();
-
+  yield(); // WDT sıfırlama
   if (millis() - sonZaman >= 60) {
     sonZaman = millis();
-
     digitalWrite(pinler[sira], LOW);
     sira += artis;
-
-    if (sira >= adet - 1) {
-      sira = adet - 1;
-      artis = -1;
-    } else if (sira <= 0) {
-      sira = 0;
-      artis = 1;
-    }
-
+    if (sira >= adet - 1) { sira = adet - 1; artis = -1; }
+    else if (sira <= 0) { sira = 0; artis = 1; }
     digitalWrite(pinler[sira], HIGH);
   }
 }"""
@@ -246,308 +156,508 @@ void loop() {
         "sure": "15 Dk",
         "malzemeler": [
             {"adet": "1x", "isim": "Ortak Katot RGB LED", "link": "https://www.direnc.net"},
-            {"adet": "3x", "isim": "220Ω / 330Ω Direnç", "link": "https://www.direnc.net"},
-            {"adet": "4x", "isim": "Jumper Kablo", "link": "https://www.direnc.net"}
+            {"adet": "3x", "isim": "220Ω / 330Ω Direnç", "link": "https://www.direnc.net"}
         ],
         "kartlar": {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "RGB R / G / B", "pin": "D9 / D10 / D11 (PWM)"}, {"bilesen": "Katot (-)", "pin": "GND"}],
-                "kod": """/*
- * ArduKod - RGB LED PWM Renk Geçiş Algoritması
- * Platform: Arduino Uno (Donanımsal Timer PWM: D9, D10, D11)
- */
-
-const int PIN_RED = 9;
-const int PIN_GREEN = 10;
-const int PIN_BLUE = 11;
-
-void setup() {
-  pinMode(PIN_RED, OUTPUT);
-  pinMode(PIN_GREEN, OUTPUT);
-  pinMode(PIN_BLUE, OUTPUT);
-}
-
-void rgbAyarla(uint8_t r, uint8_t g, uint8_t b) {
-  analogWrite(PIN_RED, r);
-  analogWrite(PIN_GREEN, g);
-  analogWrite(PIN_BLUE, b);
-}
-
+                "kod": """/* ArduKod - RGB LED Fade (Arduino Uno) */
+const int rPin = 9, gPin = 10, bPin = 11;
+void setup() { pinMode(rPin, OUTPUT); pinMode(gPin, OUTPUT); pinMode(bPin, OUTPUT); }
+void rgbYaz(uint8_t r, uint8_t g, uint8_t b) { analogWrite(rPin, r); analogWrite(gPin, g); analogWrite(bPin, b); }
 void loop() {
-  // Kırmızıdan Yeşile Geçiş
-  for (int i = 0; i <= 255; i++) {
-    rgbAyarla(255 - i, i, 0);
-    delay(6);
-  }
-  // Yeşilden Maviye Geçiş
-  for (int i = 0; i <= 255; i++) {
-    rgbAyarla(0, 255 - i, i);
-    delay(6);
-  }
-  // Maviden Kırmızıya Geçiş
-  for (int i = 0; i <= 255; i++) {
-    rgbAyarla(i, 0, 255 - i);
-    delay(6);
-  }
+  for (int i = 0; i <= 255; i++) { rgbYaz(255-i, i, 0); delay(5); }
+  for (int i = 0; i <= 255; i++) { rgbYaz(0, 255-i, i); delay(5); }
+  for (int i = 0; i <= 255; i++) { rgbYaz(i, 0, 255-i); delay(5); }
 }"""
             },
             "nano": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "RGB R / G / B", "pin": "D9 / D10 / D11 (PWM)"}, {"bilesen": "Katot (-)", "pin": "GND"}],
-                "kod": """/* ArduKod - RGB LED PWM Fade (Arduino Nano) */
-const int rPin = 9, gPin = 10, bPin = 11;
-
-void setup() {
-  pinMode(rPin, OUTPUT);
-  pinMode(gPin, OUTPUT);
-  pinMode(bPin, OUTPUT);
-}
-
+                "kod": """/* ArduKod - RGB LED (Arduino Nano) */
+const int r = 9, g = 10, b = 11;
+void setup() { pinMode(r, OUTPUT); pinMode(g, OUTPUT); pinMode(b, OUTPUT); }
 void loop() {
-  for (int i = 0; i < 255; i++) { analogWrite(rPin, 255 - i); analogWrite(gPin, i); delay(5); }
-  for (int i = 0; i < 255; i++) { analogWrite(gPin, 255 - i); analogWrite(bPin, i); delay(5); }
-  for (int i = 0; i < 255; i++) { analogWrite(bPin, 255 - i); analogWrite(rPin, i); delay(5); }
+  for (int i = 0; i < 255; i++) { analogWrite(r, 255-i); analogWrite(g, i); delay(5); }
+  for (int i = 0; i < 255; i++) { analogWrite(g, 255-i); analogWrite(b, i); delay(5); }
+  for (int i = 0; i < 255; i++) { analogWrite(b, 255-i); analogWrite(r, i); delay(5); }
 }"""
             },
             "esp32": {
-                "kutuphaneler": "Harici kütüphane gerekmez (Dahili ledc PWM motoru).",
+                "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "RGB R / G / B", "pin": "GPIO 18 / 19 / 21"}, {"bilesen": "Katot (-)", "pin": "GND"}],
-                "kod": """/*
- * ArduKod - ESP32 Donanımsal LEDC PWM ile 8-Bit RGB Sürüşü
- * Platform: ESP32 (3.3V)
- */
-
-const int PIN_R = 18;
-const int PIN_G = 19;
-const int PIN_B = 21;
-
-const uint32_t PWM_FREQ = 5000;
-const uint8_t PWM_RES = 8; // 8-bit çözünürlük (0-255 aralığı)
-
+                "kod": """/* ArduKod - ESP32 Donanımsal LEDC PWM ile RGB */
+const int r = 18, g = 19, b = 21;
 void setup() {
-  Serial.begin(115200);
-  
-  // Güncel ESP32 Core 3.x uyumlu ledcAttach API
-  ledcAttach(PIN_R, PWM_FREQ, PWM_RES);
-  ledcAttach(PIN_G, PWM_FREQ, PWM_RES);
-  ledcAttach(PIN_B, PWM_FREQ, PWM_RES);
+  ledcAttach(r, 5000, 8); ledcAttach(g, 5000, 8); ledcAttach(b, 5000, 8);
 }
-
-void renkVer(uint8_t r, uint8_t g, uint8_t b) {
-  ledcWrite(PIN_R, r);
-  ledcWrite(PIN_G, g);
-  ledcWrite(PIN_B, b);
-}
-
 void loop() {
-  for (int i = 0; i < 255; i++) { renkVer(255 - i, i, 0); delay(5); }
-  for (int i = 0; i < 255; i++) { renkVer(0, 255 - i, i); delay(5); }
-  for (int i = 0; i < 255; i++) { renkVer(i, 0, 255 - i); delay(5); }
+  for (int i = 0; i < 255; i++) { ledcWrite(r, 255-i); ledcWrite(g, i); delay(5); }
+  for (int i = 0; i < 255; i++) { ledcWrite(g, 255-i); ledcWrite(b, i); delay(5); }
+  for (int i = 0; i < 255; i++) { ledcWrite(b, 255-i); ledcWrite(r, i); delay(5); }
 }"""
             },
             "esp8266": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "RGB R / G / B", "pin": "D1 / D2 / D5"}, {"bilesen": "Katot (-)", "pin": "GND"}],
-                "kod": """/* ArduKod - ESP8266 NodeMCU 10-Bit RGB PWM */
-const int rPin = D1, gPin = D2, bPin = D5;
-
-void setup() {
-  pinMode(rPin, OUTPUT);
-  pinMode(gPin, OUTPUT);
-  pinMode(bPin, OUTPUT);
-}
-
+                "kod": """/* ArduKod - NodeMCU ESP8266 RGB */
+const int r = D1, g = D2, b = D5;
+void setup() { pinMode(r, OUTPUT); pinMode(g, OUTPUT); pinMode(b, OUTPUT); }
 void loop() {
-  // ESP8266 varsayılan 0-1023 aralığında PWM üretir
-  for (int i = 0; i <= 1023; i += 8) {
-    analogWrite(rPin, 1023 - i);
-    analogWrite(gPin, i);
-    delay(4);
-  }
-  for (int i = 0; i <= 1023; i += 8) {
-    analogWrite(gPin, 1023 - i);
-    analogWrite(bPin, i);
-    delay(4);
-  }
-  for (int i = 0; i <= 1023; i += 8) {
-    analogWrite(bPin, 1023 - i);
-    analogWrite(rPin, i);
-    delay(4);
-  }
+  for (int i = 0; i <= 1023; i += 8) { analogWrite(r, 1023-i); analogWrite(g, i); delay(4); }
+  for (int i = 0; i <= 1023; i += 8) { analogWrite(g, 1023-i); analogWrite(b, i); delay(4); }
+  for (int i = 0; i <= 1023; i += 8) { analogWrite(b, 1023-i); analogWrite(r, i); delay(4); }
+}"""
+            }
+        }
+    },
+    "trafik-isiklari": {
+        "kategori": "Temel & LED",
+        "baslik": "Zaman Ayarlı Standart Trafik Işıkları",
+        "zorluk": "Başlangıç",
+        "sure": "10 Dk",
+        "malzemeler": [{"adet": "3x", "isim": "Kırmızı, Sarı, Yeşil LED", "link": ""}, {"adet": "3x", "isim": "220Ω Direnç", "link": ""}],
+        "kartlar": {
+            "uno": {
+                "kutuphaneler": "Harici kütüphane gerekmez.",
+                "baglanti": [{"bilesen": "Kırmızı/Sarı/Yeşil", "pin": "D2 / D3 / D4"}, {"bilesen": "Katot (-)", "pin": "GND"}],
+                "kod": """/* ArduKod - Trafik Işıkları (Uno) */
+const int k = 2, s = 3, y = 4;
+void setup() { pinMode(k, OUTPUT); pinMode(s, OUTPUT); pinMode(y, OUTPUT); }
+void loop() {
+  digitalWrite(k, HIGH); delay(4000);
+  digitalWrite(s, HIGH); delay(1000);
+  digitalWrite(k, LOW); digitalWrite(s, LOW); digitalWrite(y, HIGH); delay(4000);
+  digitalWrite(y, LOW); digitalWrite(s, HIGH); delay(1000); digitalWrite(s, LOW);
+}"""
+            },
+            "nano": {
+                "kutuphaneler": "Harici kütüphane gerekmez.",
+                "baglanti": [{"bilesen": "Kırmızı/Sarı/Yeşil", "pin": "D2 / D3 / D4"}, {"bilesen": "Katot (-)", "pin": "GND"}],
+                "kod": """/* ArduKod - Trafik Işıkları (Nano) */
+const int k = 2, s = 3, y = 4;
+void setup() { pinMode(k, OUTPUT); pinMode(s, OUTPUT); pinMode(y, OUTPUT); }
+void loop() {
+  digitalWrite(k, HIGH); delay(4000); digitalWrite(s, HIGH); delay(1000);
+  digitalWrite(k, LOW); digitalWrite(s, LOW); digitalWrite(y, HIGH); delay(4000);
+  digitalWrite(y, LOW); digitalWrite(s, HIGH); delay(1000); digitalWrite(s, LOW);
+}"""
+            },
+            "esp32": {
+                "kutuphaneler": "Harici kütüphane gerekmez.",
+                "baglanti": [{"bilesen": "Kırmızı/Sarı/Yeşil", "pin": "GPIO 18 / 19 / 21"}, {"bilesen": "Katot (-)", "pin": "GND"}],
+                "kod": """/* ArduKod - Trafik Işıkları (ESP32) */
+const int k = 18, s = 19, y = 21;
+void setup() { pinMode(k, OUTPUT); pinMode(s, OUTPUT); pinMode(y, OUTPUT); }
+void loop() {
+  digitalWrite(k, HIGH); delay(4000); digitalWrite(s, HIGH); delay(1000);
+  digitalWrite(k, LOW); digitalWrite(s, LOW); digitalWrite(y, HIGH); delay(4000);
+  digitalWrite(y, LOW); digitalWrite(s, HIGH); delay(1000); digitalWrite(s, LOW);
+}"""
+            },
+            "esp8266": {
+                "kutuphaneler": "Harici kütüphane gerekmez.",
+                "baglanti": [{"bilesen": "Kırmızı/Sarı/Yeşil", "pin": "D1 / D2 / D5"}, {"bilesen": "Katot (-)", "pin": "GND"}],
+                "kod": """/* ArduKod - Trafik Işıkları (ESP8266) */
+const int k = D1, s = D2, y = D5;
+void setup() { pinMode(k, OUTPUT); pinMode(s, OUTPUT); pinMode(y, OUTPUT); }
+void loop() {
+  digitalWrite(k, HIGH); delay(4000); digitalWrite(s, HIGH); delay(1000);
+  digitalWrite(k, LOW); digitalWrite(s, LOW); digitalWrite(y, HIGH); delay(4000);
+  digitalWrite(y, LOW); digitalWrite(s, HIGH); delay(1000); digitalWrite(s, LOW);
+}"""
+            }
+        }
+    },
+    "ldr-otomatik-far": {
+        "kategori": "Sensörler",
+        "baslik": "LDR & Gerilim Bölücü ile Otomatik Far/Aydınlatma",
+        "zorluk": "Başlangıç",
+        "sure": "10 Dk",
+        "malzemeler": [{"adet": "1x", "isim": "LDR (Fotodirenç)", "link": ""}, {"adet": "1x", "isim": "10kΩ Direnç", "link": ""}, {"adet": "1x", "isim": "LED & 220Ω", "link": ""}],
+        "kartlar": {
+            "uno": {
+                "kutuphaneler": "Harici kütüphane gerekmez.",
+                "baglanti": [{"bilesen": "LDR & 10k Ortak Bacak", "pin": "A0"}, {"bilesen": "LED (+)", "pin": "D13"}],
+                "kod": """/* ArduKod - LDR Otomatik Far (Uno) */
+const int ldrPin = A0, ledPin = 13;
+void setup() { pinMode(ledPin, OUTPUT); Serial.begin(9600); }
+void loop() {
+  int isik = analogRead(ldrPin);
+  Serial.println(isik);
+  if (isik < 400) digitalWrite(ledPin, HIGH); // Karanlıkta yak
+  else digitalWrite(ledPin, LOW);
+  delay(100);
+}"""
+            },
+            "nano": {
+                "kutuphaneler": "Harici kütüphane gerekmez.",
+                "baglanti": [{"bilesen": "LDR & 10k Ortak Bacak", "pin": "A0"}, {"bilesen": "LED (+)", "pin": "D13"}],
+                "kod": """/* ArduKod - LDR (Nano) */
+void setup() { pinMode(13, OUTPUT); }
+void loop() {
+  if (analogRead(A0) < 400) digitalWrite(13, HIGH);
+  else digitalWrite(13, LOW);
+  delay(100);
+}"""
+            },
+            "esp32": {
+                "kutuphaneler": "Harici kütüphane gerekmez.",
+                "baglanti": [{"bilesen": "LDR & 10k Ortak Bacak", "pin": "GPIO 34 (ADC1)"}, {"bilesen": "LED (+)", "pin": "GPIO 2"}],
+                "kod": """/* ArduKod - LDR (ESP32 - 12-Bit ADC: 0-4095) */
+const int ldrPin = 34, ledPin = 2;
+void setup() { pinMode(ledPin, OUTPUT); Serial.begin(115200); }
+void loop() {
+  int ham = analogRead(ldrPin);
+  if (ham < 1500) digitalWrite(ledPin, HIGH);
+  else digitalWrite(ledPin, LOW);
+  delay(100);
+}"""
+            },
+            "esp8266": {
+                "kutuphaneler": "Harici kütüphane gerekmez.",
+                "baglanti": [{"bilesen": "LDR & 10k Ortak Bacak", "pin": "A0"}, {"bilesen": "LED (+)", "pin": "D4"}],
+                "kod": """/* ArduKod - LDR (NodeMCU ESP8266) */
+void setup() { pinMode(D4, OUTPUT); }
+void loop() {
+  if (analogRead(A0) < 450) digitalWrite(D4, LOW); // Dahili LED ters
+  else digitalWrite(D4, HIGH);
+  delay(100);
 }"""
             }
         }
     },
     "hc-sr04-radar": {
         "kategori": "Sensörler",
-        "baslik": "HC-SR04 Hassas Park Sensörü & Buzzer",
+        "baslik": "HC-SR04 Ultrasonik Hassas Park Sensörü & Buzzer",
         "zorluk": "Orta",
         "sure": "15 Dk",
-        "malzemeler": [
-            {"adet": "1x", "isim": "HC-SR04 Ultrasonik Sensör", "link": "https://www.direnc.net"},
-            {"adet": "1x", "isim": "5V Aktif Buzzer", "link": "https://www.direnc.net"},
-            {"adet": "2x", "isim": "1kΩ ve 2kΩ Direnç (ESP Koruması)", "link": ""}
-        ],
+        "malzemeler": [{"adet": "1x", "isim": "HC-SR04 Sensör", "link": "https://www.direnc.net"}, {"adet": "1x", "isim": "Buzzer", "link": ""}],
         "kartlar": {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Trig / Echo", "pin": "D9 / D10"}, {"bilesen": "Buzzer (+)", "pin": "D8"}],
-                "kod": """/*
- * ArduKod - HC-SR04 Mesafe Radarı & Dinamik Hız Kontrolü
- * Platform: Arduino Uno (ATmega328P)
- * Filtreleme: 3 Örneklem Medyan Filtresi & Zaman Aşımı Emniyeti
- */
-
-const uint8_t PIN_TRIG = 9;
-const uint8_t PIN_ECHO = 10;
-const uint8_t PIN_BUZZER = 8;
-
-const unsigned long TIMEOUT_US = 25000; // ~4.2 metre sınır
-
+                "kod": """/* ArduKod - HC-SR04 Mesafe Radarı (Arduino Uno) */
+const uint8_t TRIG = 9, ECHO = 10, BUZZ = 8;
 void setup() {
   Serial.begin(9600);
-  pinMode(PIN_TRIG, OUTPUT);
-  pinMode(PIN_ECHO, INPUT);
-  pinMode(PIN_BUZZER, OUTPUT);
-  Serial.println(F("[SİSTEM] HC-SR04 Radar Sensörü Kalibre Edildi."));
+  pinMode(TRIG, OUTPUT); pinMode(ECHO, INPUT); pinMode(BUZZ, OUTPUT);
 }
-
-float tekilMesafeOlc() {
-  digitalWrite(PIN_TRIG, LOW);
-  delayMicroseconds(2);
-  digitalWrite(PIN_TRIG, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(PIN_TRIG, LOW);
-
-  unsigned long sure = pulseIn(PIN_ECHO, HIGH, TIMEOUT_US);
-  if (sure == 0) return 999.0; // Zaman aşımı
-  return (sure * 0.03432) / 2.0; // 20°C ortam ses hızı katsayısı
-}
-
-float filtrelenmisMesafe() {
-  float d1 = tekilMesafeOlc();
-  delay(10);
-  float d2 = tekilMesafeOlc();
-  return (d1 + d2) / 2.0;
-}
-
 void loop() {
-  float mesafe = filtrelenmisMesafe();
-
-  if (mesafe > 2.0 && mesafe <= 40.0) {
-    Serial.print(F("Mesafe: ")); Serial.print(mesafe, 1); Serial.println(F(" cm"));
-
-    // Mesafeye bağlı dinamik frekans/gecikme haritası
-    int aralik = map((int)mesafe, 2, 40, 30, 350);
-
-    digitalWrite(PIN_BUZZER, HIGH);
-    delay(25);
-    digitalWrite(PIN_BUZZER, LOW);
-    delay(aralik);
+  digitalWrite(TRIG, LOW); delayMicroseconds(2);
+  digitalWrite(TRIG, HIGH); delayMicroseconds(10);
+  digitalWrite(TRIG, LOW);
+  unsigned long sure = pulseIn(ECHO, HIGH, 25000);
+  int mesafe = (sure * 0.0343) / 2;
+  if (mesafe > 2 && mesafe <= 40) {
+    digitalWrite(BUZZ, HIGH); delay(25); digitalWrite(BUZZ, LOW);
+    delay(map(mesafe, 2, 40, 30, 350));
   } else {
-    digitalWrite(PIN_BUZZER, LOW);
-    delay(60);
+    digitalWrite(BUZZ, LOW); delay(60);
   }
 }"""
             },
             "nano": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Trig / Echo", "pin": "D9 / D10"}, {"bilesen": "Buzzer (+)", "pin": "D8"}],
-                "kod": """/* ArduKod - HC-SR04 Park Radarı (Arduino Nano) */
-const int trigPin = 9, echoPin = 10, buzzPin = 8;
-
-void setup() {
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin, INPUT);
-  pinMode(buzzPin, OUTPUT);
-}
-
+                "kod": """/* ArduKod - HC-SR04 (Arduino Nano) */
+const int trig = 9, echo = 10, buzz = 8;
+void setup() { pinMode(trig, OUTPUT); pinMode(echo, INPUT); pinMode(buzz, OUTPUT); }
 void loop() {
-  digitalWrite(trigPin, LOW); delayMicroseconds(2);
-  digitalWrite(trigPin, HIGH); delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-
-  long sure = pulseIn(echoPin, HIGH, 25000);
-  int mesafe = (sure * 0.0343) / 2;
-
-  if (mesafe > 0 && mesafe < 35) {
-    digitalWrite(buzzPin, HIGH); delay(25);
-    digitalWrite(buzzPin, LOW); delay(map(mesafe, 2, 35, 30, 250));
-  } else {
-    delay(80);
-  }
+  digitalWrite(trig, LOW); delayMicroseconds(2);
+  digitalWrite(trig, HIGH); delayMicroseconds(10);
+  digitalWrite(trig, LOW);
+  long s = pulseIn(echo, HIGH, 25000); int d = (s * 0.0343) / 2;
+  if (d > 0 && d < 35) {
+    digitalWrite(buzz, HIGH); delay(25); digitalWrite(buzz, LOW);
+    delay(map(d, 2, 35, 30, 250));
+  } else delay(80);
 }"""
             },
             "esp32": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Trig / Echo", "pin": "GPIO 5 / GPIO 18 (1k/2k Bölücü)"}, {"bilesen": "Buzzer (+)", "pin": "GPIO 19"}],
-                "kod": """/*
- * ArduKod - ESP32 3.3V Emniyetli Ultrasonik Radar
- * DİKKAT: Echo çıkışı 5V olduğu için GPIO 18 önüne 1k/2k gerilim bölücü zorunludur!
- */
-
-const int TRIG_PIN = 5;
-const int ECHO_PIN = 18;
-const int BUZZ_PIN = 19;
-
-void setup() {
-  Serial.begin(115200);
-  pinMode(TRIG_PIN, OUTPUT);
-  pinMode(ECHO_PIN, INPUT);
-  pinMode(BUZZ_PIN, OUTPUT);
-}
-
+                "kod": """/* ArduKod - ESP32 HC-SR04 (3.3V Gerilim Bölücülü) */
+const int TRIG = 5, ECHO = 18, BUZZ = 19;
+void setup() { pinMode(TRIG, OUTPUT); pinMode(ECHO, INPUT); pinMode(BUZZ, OUTPUT); }
 void loop() {
-  digitalWrite(TRIG_PIN, LOW);
-  delayMicroseconds(2);
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-
-  unsigned long sure = pulseIn(ECHO_PIN, HIGH, 30000);
+  digitalWrite(TRIG, LOW); delayMicroseconds(2);
+  digitalWrite(TRIG, HIGH); delayMicroseconds(10);
+  digitalWrite(TRIG, LOW);
+  unsigned long sure = pulseIn(ECHO, HIGH, 30000);
   int mesafe = (sure * 0.0343) / 2;
-
   if (mesafe > 0 && mesafe < 40) {
-    digitalWrite(BUZZ_PIN, HIGH);
-    delay(20);
-    digitalWrite(BUZZ_PIN, LOW);
+    digitalWrite(BUZZ, HIGH); delay(20); digitalWrite(BUZZ, LOW);
     delay(map(mesafe, 3, 40, 25, 300));
-  } else {
-    delay(100);
-  }
+  } else delay(100);
 }"""
             },
             "esp8266": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Trig / Echo", "pin": "D1 / D2 (Bölücülü)"}, {"bilesen": "Buzzer (+)", "pin": "D5"}],
-                "kod": """/* ArduKod - ESP8266 NodeMCU Park Sensörü */
-const int trigPin = D1;
-const int echoPin = D2;
-const int buzzPin = D5;
+                "kod": """/* ArduKod - NodeMCU ESP8266 Mesafe */
+const int trig = D1, echo = D2, buzz = D5;
+void setup() { pinMode(trig, OUTPUT); pinMode(echo, INPUT); pinMode(buzz, OUTPUT); }
+void loop() {
+  digitalWrite(trig, LOW); delayMicroseconds(2);
+  digitalWrite(trig, HIGH); delayMicroseconds(10);
+  digitalWrite(trig, LOW);
+  long s = pulseIn(echo, HIGH, 30000); int cm = (s * 0.0343) / 2;
+  if (cm > 0 && cm < 35) {
+    digitalWrite(buzz, HIGH); delay(25); digitalWrite(buzz, LOW);
+    delay(map(cm, 3, 35, 30, 280));
+  } else delay(100);
+}"""
+            }
+        }
+    },
+    "hc-sr501-pir": {
+        "kategori": "Sensörler",
+        "baslik": "HC-SR501 PIR Hareket Algılamalı Hırsız Alarmı",
+        "zorluk": "Başlangıç",
+        "sure": "10 Dk",
+        "malzemeler": [{"adet": "1x", "isim": "HC-SR501 PIR Sensörü", "link": ""}, {"adet": "1x", "isim": "Buzzer / LED", "link": ""}],
+        "kartlar": {
+            "uno": {
+                "kutuphaneler": "Harici kütüphane gerekmez.",
+                "baglanti": [{"bilesen": "PIR OUT", "pin": "D2"}, {"bilesen": "Alarm LED", "pin": "D13"}],
+                "kod": """/* ArduKod - PIR Hareket Sensörü (Uno) */
+const int pirPin = 2, ledPin = 13;
+void setup() { pinMode(pirPin, INPUT); pinMode(ledPin, OUTPUT); Serial.begin(9600); }
+void loop() {
+  if (digitalRead(pirPin) == HIGH) {
+    Serial.println(F("[ALARM] Hareket Algılandı!"));
+    digitalWrite(ledPin, HIGH);
+  } else {
+    digitalWrite(ledPin, LOW);
+  }
+  delay(100);
+}"""
+            },
+            "nano": {
+                "kutuphaneler": "Harici kütüphane gerekmez.",
+                "baglanti": [{"bilesen": "PIR OUT", "pin": "D2"}, {"bilesen": "Alarm LED", "pin": "D13"}],
+                "kod": """/* ArduKod - PIR (Nano) */
+void setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); }
+void loop() { digitalWrite(13, digitalRead(2)); }"""
+            },
+            "esp32": {
+                "kutuphaneler": "Harici kütüphane gerekmez.",
+                "baglanti": [{"bilesen": "PIR OUT", "pin": "GPIO 13"}, {"bilesen": "Alarm LED", "pin": "GPIO 2"}],
+                "kod": """/* ArduKod - PIR (ESP32) */
+void setup() { pinMode(13, INPUT); pinMode(2, OUTPUT); }
+void loop() { digitalWrite(2, digitalRead(13)); }"""
+            },
+            "esp8266": {
+                "kutuphaneler": "Harici kütüphane gerekmez.",
+                "baglanti": [{"bilesen": "PIR OUT", "pin": "D7"}, {"bilesen": "Alarm LED", "pin": "D4"}],
+                "kod": """/* ArduKod - PIR (ESP8266) */
+void setup() { pinMode(D7, INPUT); pinMode(D4, OUTPUT); }
+void loop() { digitalWrite(D4, !digitalRead(D7)); }"""
+            }
+        }
+    },
+    "dht11-sicaklik": {
+        "kategori": "Sensörler",
+        "baslik": "DHT11 Dijital Sıcaklık & Nem Ölçümü",
+        "zorluk": "Başlangıç",
+        "sure": "10 Dk",
+        "malzemeler": [{"adet": "1x", "isim": "DHT11 Sensörü", "link": ""}, {"adet": "1x", "isim": "10kΩ Direnç", "link": ""}],
+        "kartlar": {
+            "uno": {
+                "kutuphaneler": "<DHT.h> (Adafruit)",
+                "baglanti": [{"bilesen": "DATA Pini", "pin": "D2 (10k Pull-up)"}],
+                "kod": """/* ArduKod - DHT11 Nem & Sıcaklık (Uno) */
+#include <DHT.h>
+#define DHTPIN 2
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
 
 void setup() {
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin, INPUT);
-  pinMode(buzzPin, OUTPUT);
+  Serial.begin(9600);
+  dht.begin();
 }
 
 void loop() {
-  digitalWrite(trigPin, LOW); delayMicroseconds(2);
-  digitalWrite(trigPin, HIGH); delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-
-  long sure = pulseIn(echoPin, HIGH, 30000);
-  int cm = (sure * 0.0343) / 2;
-
-  if (cm > 0 && cm < 35) {
-    digitalWrite(buzzPin, HIGH); delay(25);
-    digitalWrite(buzzPin, LOW); delay(map(cm, 3, 35, 30, 280));
-  } else {
-    delay(100);
-  }
+  delay(2000);
+  float h = dht.readHumidity();
+  float t = dht.readTemperature();
+  if (isnan(h) || isnan(t)) { Serial.println(F("Okuma Hatası!")); return; }
+  Serial.print(F("Nem: %")); Serial.print(h);
+  Serial.print(F(" | Sıcaklık: ")); Serial.print(t); Serial.println(F(" °C"));
 }"""
+            },
+            "nano": {
+                "kutuphaneler": "<DHT.h>",
+                "baglanti": [{"bilesen": "DATA", "pin": "D2"}],
+                "kod": """#include <DHT.h>\nDHT dht(2, DHT11);\nvoid setup(){ Serial.begin(9600); dht.begin(); }\nvoid loop(){ delay(2000); Serial.println(dht.readTemperature()); }"""
+            },
+            "esp32": {
+                "kutuphaneler": "<DHT.h>",
+                "baglanti": [{"bilesen": "DATA", "pin": "GPIO 4"}],
+                "kod": """#include <DHT.h>\nDHT dht(4, DHT11);\nvoid setup(){ Serial.begin(115200); dht.begin(); }\nvoid loop(){ delay(2000); Serial.println(dht.readTemperature()); }"""
+            },
+            "esp8266": {
+                "kutuphaneler": "<DHT.h>",
+                "baglanti": [{"bilesen": "DATA", "pin": "D4 (GPIO 2)"}],
+                "kod": """#include <DHT.h>\nDHT dht(D4, DHT11);\nvoid setup(){ Serial.begin(115200); dht.begin(); }\nvoid loop(){ delay(2000); Serial.println(dht.readTemperature()); }"""
             }
+        }
+    },
+    "tcrt5000-cizgi": {
+        "kategori": "Sensörler",
+        "baslik": "TCRT5000 Çift Çıkışlı Kızılötesi Çizgi Sensörü",
+        "zorluk": "Başlangıç",
+        "sure": "10 Dk",
+        "malzemeler": [{"adet": "1x", "isim": "TCRT5000 Çizgi Sensörü", "link": ""}],
+        "kartlar": {
+            "uno": {
+                "kutuphaneler": "Harici kütüphane gerekmez.",
+                "baglanti": [{"bilesen": "DO (Dijital)", "pin": "D2"}, {"bilesen": "LED", "pin": "D13"}],
+                "kod": """/* ArduKod - Çizgi Sensörü (Uno) */
+void setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); }
+void loop() { digitalWrite(13, !digitalRead(2)); }"""
+            },
+            "nano": {"kutuphaneler":"Harici gerekmez.","baglanti":[{"bilesen":"DO","pin":"D2"}],"kod":"void setup(){pinMode(2,INPUT);pinMode(13,OUTPUT);}\nvoid loop(){digitalWrite(13,!digitalRead(2));}"},
+            "esp32": {"kutuphaneler":"Harici gerekmez.","baglanti":[{"bilesen":"DO","pin":"GPIO 4"}],"kod":"void setup(){pinMode(4,INPUT);pinMode(2,OUTPUT);}\nvoid loop(){digitalWrite(2,!digitalRead(4));}"},
+            "esp8266": {"kutuphaneler":"Harici gerekmez.","baglanti":[{"bilesen":"DO","pin":"D1"}],"kod":"void setup(){pinMode(D1,INPUT);pinMode(D4,OUTPUT);}\nvoid loop(){digitalWrite(D4,digitalRead(D1));}"}
+        }
+    },
+    "pot-analog-map": {
+        "kategori": "Giriş & Kontrol",
+        "baslik": "Potansiyometre ile LED Parlaklığı Ayarlama (Map)",
+        "zorluk": "Başlangıç",
+        "sure": "10 Dk",
+        "malzemeler": [{"adet": "1x", "isim": "10kΩ Potansiyometre", "link": ""}, {"adet": "1x", "isim": "LED & 220Ω", "link": ""}],
+        "kartlar": {
+            "uno": {
+                "kutuphaneler": "Harici kütüphane gerekmez.",
+                "baglanti": [{"bilesen": "Pot Orta", "pin": "A0"}, {"bilesen": "LED (+)", "pin": "D9 (PWM)"}],
+                "kod": """/* ArduKod - Potansiyometre PWM (Uno) */
+void setup() { pinMode(9, OUTPUT); }
+void loop() {
+  int ham = analogRead(A0);
+  analogWrite(9, map(ham, 0, 1023, 0, 255));
+  delay(10);
+}"""
+            },
+            "nano": {"kutuphaneler":"Harici gerekmez.","baglanti":[{"bilesen":"Pot Orta","pin":"A0"},{"bilesen":"LED","pin":"D9"}],"kod":"void setup(){pinMode(9,OUTPUT);}\nvoid loop(){analogWrite(9,map(analogRead(A0),0,1023,0,255));delay(10);}"},
+            "esp32": {"kutuphaneler":"Harici gerekmez.","baglanti":[{"bilesen":"Pot Orta","pin":"GPIO 32"},{"bilesen":"LED","pin":"GPIO 18"}],"kod":"void setup(){ledcAttach(18,5000,8);}\nvoid loop(){ledcWrite(18,map(analogRead(32),0,4095,0,255));delay(10);}"},
+            "esp8266": {"kutuphaneler":"Harici gerekmez.","baglanti":[{"bilesen":"Pot Orta","pin":"A0"},{"bilesen":"LED","pin":"D1"}],"kod":"void setup(){pinMode(D1,OUTPUT);}\nvoid loop(){analogWrite(D1,analogRead(A0));delay(10);}"}
+        }
+    },
+    "buton-dahili-pullup": {
+        "kategori": "Giriş & Kontrol",
+        "baslik": "Dahili Pull-up Dirençli Buton Kontrolü",
+        "zorluk": "Başlangıç",
+        "sure": "10 Dk",
+        "malzemeler": [{"adet": "1x", "isim": "Push Buton", "link": ""}],
+        "kartlar": {
+            "uno": {
+                "kutuphaneler": "Harici kütüphane gerekmez.",
+                "baglanti": [{"bilesen": "Buton Bacakları", "pin": "D2 ve GND"}, {"bilesen": "LED", "pin": "D13"}],
+                "kod": """/* ArduKod - INPUT_PULLUP Buton */
+void setup() { pinMode(2, INPUT_PULLUP); pinMode(13, OUTPUT); }
+void loop() { digitalWrite(13, !digitalRead(2)); }"""
+            },
+            "nano": {"kutuphaneler":"Harici gerekmez.","baglanti":[{"bilesen":"Buton","pin":"D2/GND"}],"kod":"void setup(){pinMode(2,INPUT_PULLUP);pinMode(13,OUTPUT);}\nvoid loop(){digitalWrite(13,!digitalRead(2));}"},
+            "esp32": {"kutuphaneler":"Harici gerekmez.","baglanti":[{"bilesen":"Buton","pin":"GPIO 4/GND"}],"kod":"void setup(){pinMode(4,INPUT_PULLUP);pinMode(2,OUTPUT);}\nvoid loop(){digitalWrite(2,!digitalRead(4));}"},
+            "esp8266": {"kutuphaneler":"Harici gerekmez.","baglanti":[{"bilesen":"Buton","pin":"D2/GND"}],"kod":"void setup(){pinMode(D2,INPUT_PULLUP);pinMode(D4,OUTPUT);}\nvoid loop(){digitalWrite(D4,digitalRead(D2));}"}
+        }
+    },
+    "role-220v-kontrol": {
+        "kategori": "Motor & Güç",
+        "baslik": "5V Tek Kanal Röle ile Yüksek Güç Kontrolü",
+        "zorluk": "Orta",
+        "sure": "15 Dk",
+        "malzemeler": [{"adet": "1x", "isim": "5V Röle Modülü", "link": ""}],
+        "kartlar": {
+            "uno": {
+                "kutuphaneler": "Harici kütüphane gerekmez.",
+                "baglanti": [{"bilesen": "Röle IN", "pin": "D7"}, {"bilesen": "Besleme", "pin": "5V / GND"}],
+                "kod": """/* ArduKod - Röle Sürücü (Uno) */
+void setup() { pinMode(7, OUTPUT); }
+void loop() {
+  digitalWrite(7, LOW); delay(2000);  // Röle Çekti
+  digitalWrite(7, HIGH); delay(2000); // Röle Bıraktı
+}"""
+            },
+            "nano": {"kutuphaneler":"Harici gerekmez.","baglanti":[{"bilesen":"IN","pin":"D7"}],"kod":"void setup(){pinMode(7,OUTPUT);}\nvoid loop(){digitalWrite(7,LOW);delay(2000);digitalWrite(7,HIGH);delay(2000);}"},
+            "esp32": {"kutuphaneler":"Harici gerekmez.","baglanti":[{"bilesen":"IN","pin":"GPIO 19"}],"kod":"void setup(){pinMode(19,OUTPUT);}\nvoid loop(){digitalWrite(19,LOW);delay(2000);digitalWrite(19,HIGH);delay(2000);}"},
+            "esp8266": {"kutuphaneler":"Harici gerekmez.","baglanti":[{"bilesen":"IN","pin":"D1"}],"kod":"void setup(){pinMode(D1,OUTPUT);}\nvoid loop(){digitalWrite(D1,LOW);delay(2000);digitalWrite(D1,HIGH);delay(2000);}"}
+        }
+    },
+    "sg90-servo-motor": {
+        "kategori": "Motor & Güç",
+        "baslik": "SG90 Mikro Servo Motor 0-180 Derece Açı Kontrolü",
+        "zorluk": "Orta",
+        "sure": "15 Dk",
+        "malzemeler": [{"adet": "1x", "isim": "SG90 Servo Motor", "link": ""}],
+        "kartlar": {
+            "uno": {
+                "kutuphaneler": "<Servo.h>",
+                "baglanti": [{"bilesen": "Sinyal (Turuncu)", "pin": "D9"}],
+                "kod": """#include <Servo.h>
+Servo s;
+void setup() { s.attach(9); }
+void loop() {
+  s.write(0); delay(1000);
+  s.write(90); delay(1000);
+  s.write(180); delay(1000);
+}"""
+            },
+            "nano": {"kutuphaneler":"<Servo.h>","baglanti":[{"bilesen":"Sinyal","pin":"D9"}],"kod":"#include <Servo.h>\nServo s;\nvoid setup(){s.attach(9);}\nvoid loop(){s.write(0);delay(1000);s.write(180);delay(1000);}"},
+            "esp32": {"kutuphaneler":"<ESP32Servo.h>","baglanti":[{"bilesen":"Sinyal","pin":"GPIO 18"}],"kod":"#include <ESP32Servo.h>\nServo s;\nvoid setup(){s.attach(18);}\nvoid loop(){s.write(0);delay(1000);s.write(180);delay(1000);}"},
+            "esp8266": {"kutuphaneler":"<Servo.h>","baglanti":[{"bilesen":"Sinyal","pin":"D4"}],"kod":"#include <Servo.h>\nServo s;\nvoid setup(){s.attach(D4);}\nvoid loop(){s.write(0);delay(1000);s.write(180);delay(1000);}"}
+        }
+    },
+    "i2c-1602-lcd": {
+        "kategori": "Ekranlar",
+        "baslik": "I2C 1602 Karakter LCD Ekran Metin Yazdırma",
+        "zorluk": "Orta",
+        "sure": "15 Dk",
+        "malzemeler": [{"adet": "1x", "isim": "1602 LCD + I2C", "link": ""}],
+        "kartlar": {
+            "uno": {
+                "kutuphaneler": "<LiquidCrystal_I2C.h>",
+                "baglanti": [{"bilesen": "SDA / SCL", "pin": "A4 / A5"}],
+                "kod": """#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+void setup() {
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0); lcd.print("ArduKod Portal");
+  lcd.setCursor(0, 1); lcd.print("1602 I2C Ekran");
+}
+void loop() {}"""
+            },
+            "nano": {"kutuphaneler":"<LiquidCrystal_I2C.h>","baglanti":[{"bilesen":"SDA/SCL","pin":"A4/A5"}],"kod":"#include <Wire.h>\n#include <LiquidCrystal_I2C.h>\nLiquidCrystal_I2C lcd(0x27,16,2);\nvoid setup(){lcd.init();lcd.backlight();lcd.print(\"ArduKod Nano\");}\nvoid loop(){}"},
+            "esp32": {"kutuphaneler":"<LiquidCrystal_I2C.h>","baglanti":[{"bilesen":"SDA/SCL","pin":"GPIO 21/22"}],"kod":"#include <Wire.h>\n#include <LiquidCrystal_I2C.h>\nLiquidCrystal_I2C lcd(0x27,16,2);\nvoid setup(){Wire.begin(21,22);lcd.init();lcd.backlight();lcd.print(\"ESP32 LCD\");}\nvoid loop(){}"},
+            "esp8266": {"kutuphaneler":"<LiquidCrystal_I2C.h>","baglanti":[{"bilesen":"SDA/SCL","pin":"D2/D1"}],"kod":"#include <Wire.h>\n#include <LiquidCrystal_I2C.h>\nLiquidCrystal_I2C lcd(0x27,16,2);\nvoid setup(){Wire.begin(D2,D1);lcd.init();lcd.backlight();lcd.print(\"ESP8266 LCD\");}\nvoid loop(){}"}
+        }
+    },
+    "buzzer-melodi": {
+        "kategori": "Ses & Bildirim",
+        "baslik": "Pasif Buzzer ile Ton ve Melodi Çalma",
+        "zorluk": "Başlangıç",
+        "sure": "10 Dk",
+        "malzemeler": [{"adet": "1x", "isim": "Pasif Buzzer", "link": ""}],
+        "kartlar": {
+            "uno": {
+                "kutuphaneler": "Harici kütüphane gerekmez.",
+                "baglanti": [{"bilesen": "Buzzer (+)", "pin": "D8"}],
+                "kod": """void setup() {}
+void loop() {
+  tone(8, 440, 200); delay(300);
+  tone(8, 880, 200); delay(500);
+}"""
+            },
+            "nano": {"kutuphaneler":"Harici gerekmez.","baglanti":[{"bilesen":"Buzzer","pin":"D8"}],"kod":"void setup(){}\nvoid loop(){tone(8,440,200);delay(300);tone(8,880,200);delay(500);}"},
+            "esp32": {"kutuphaneler":"Harici gerekmez.","baglanti":[{"bilesen":"Buzzer","pin":"GPIO 18"}],"kod":"void setup(){ledcAttach(18,2000,8);}\nvoid loop(){ledcWriteTone(18,440);delay(300);ledcWriteTone(18,880);delay(500);}"},
+            "esp8266": {"kutuphaneler":"Harici gerekmez.","baglanti":[{"bilesen":"Buzzer","pin":"D5"}],"kod":"void setup(){}\nvoid loop(){tone(D5,440,200);delay(300);tone(D5,880,200);delay(500);}"}
         }
     },
     "esp-wifi-web-server": {
@@ -555,146 +665,77 @@ void loop() {
         "baslik": "Wi-Fi Web Server ile Tarayıcıdan Röle/LED Kontrolü",
         "zorluk": "İleri",
         "sure": "20 Dk",
-        "malzemeler": [{"adet": "1x", "isim": "ESP32 veya NodeMCU", "link": "https://www.direnc.net"}],
+        "malzemeler": [{"adet": "1x", "isim": "ESP32 veya NodeMCU", "link": ""}],
         "kartlar": {
-            "uno": {
-                "kutuphaneler": "Harici modül gerekir.",
-                "baglanti": [{"bilesen": "Wi-Fi", "pin": "Dahili donanım yok (ESP seçiniz)"}],
-                "kod": "// Arduino Uno dahili Wi-Fi içermez. Lütfen yukarıdan ESP32 sekmesini seçiniz."
-            },
-            "nano": {
-                "kutuphaneler": "Harici modül gerekir.",
-                "baglanti": [{"bilesen": "Wi-Fi", "pin": "Dahili donanım yok"}],
-                "kod": "// Arduino Nano dahili Wi-Fi içermez. Lütfen yukarıdan ESP32 sekmesini seçiniz."
-            },
+            "uno": {"kutuphaneler":"Harici modül gerekir.","baglanti":[{"bilesen":"Wi-Fi","pin":"Uno Wi-Fi içermez (ESP seçiniz)"}],"kod":"// Arduino Uno dahili Wi-Fi içermez. Lütfen ESP32 sekmesine geçiniz."},
+            "nano": {"kutuphaneler":"Harici modül gerekir.","baglanti":[{"bilesen":"Wi-Fi","pin":"Nano Wi-Fi içermez"}],"kod":"// Arduino Nano dahili Wi-Fi içermez. Lütfen ESP32 sekmesine geçiniz."},
             "esp32": {
                 "kutuphaneler": "<WiFi.h>, <WebServer.h>",
-                "baglanti": [{"bilesen": "Dahili LED / Röle", "pin": "GPIO 2"}],
-                "kod": """/*
- * ArduKod - ESP32 Asenkron Web Server ile I/O Kontrolü
- * Platform: ESP32 Dev Module
- */
-
+                "baglanti": [{"bilesen": "Dahili LED", "pin": "GPIO 2"}],
+                "kod": """/* ArduKod - ESP32 Web Server */
 #include <WiFi.h>
 #include <WebServer.h>
 
 const char* ssid = "WIFI_ADINIZ";
 const char* password = "WIFI_SIFRENIZ";
-
 WebServer server(80);
-const int rolePin = 2; // Dahili LED veya Röle Sinyal Pini
-
-const char HTML_PANEL[] PROGMEM = R"rawliteral(
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ESP32 IoT Kontrol</title>
-  <style>
-    body { font-family: sans-serif; background: #0d1117; color: #fff; text-align: center; padding-top: 40px; }
-    .btn { padding: 14px 30px; font-size: 16px; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; margin: 10px; font-weight: bold; display: inline-block; }
-    .btn-on { background: #238636; color: white; }
-    .btn-off { background: #da3633; color: white; }
-  </style>
-</head>
-<body>
-  <h2>⚡ ArduKod ESP32 Web Portalı</h2>
-  <p>Röle / LED Durumu Kontrolü</p>
-  <a href="/on" class="btn btn-on">ÇIKIŞI AÇ (HIGH)</a>
-  <a href="/off" class="btn btn-off">ÇIKIŞI KAPAT (LOW)</a>
-</body>
-</html>
-)rawliteral";
-
-void handleRoot() { server.send_P(200, "text/html", HTML_PANEL); }
-
-void handleOn() {
-  digitalWrite(rolePin, HIGH);
-  server.sendHeader("Location", "/");
-  server.send(303);
-}
-
-void handleOff() {
-  digitalWrite(rolePin, LOW);
-  server.sendHeader("Location", "/");
-  server.send(303);
-}
 
 void setup() {
   Serial.begin(115200);
-  pinMode(rolePin, OUTPUT);
-  digitalWrite(rolePin, LOW);
-
+  pinMode(2, OUTPUT);
   WiFi.begin(ssid, password);
-  Serial.print("[WiFi] Bağlanılıyor...");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.println("\n[WiFi] Bağlantı Hazır!");
-  Serial.print("Tarayıcı Adresi: http://");
+  while (WiFi.status() != WL_CONNECTED) delay(500);
   Serial.println(WiFi.localIP());
 
-  server.on("/", handleRoot);
-  server.on("/on", handleOn);
-  server.on("/off", handleOff);
+  server.on("/", []() {
+    server.send(200, "text/html", "<h2>ESP32 Web Server</h2><a href='/on'>AC</a> | <a href='/off'>KAPAT</a>");
+  });
+  server.on("/on", []() { digitalWrite(2, HIGH); server.send(200, "text/plain", "ACIK"); });
+  server.on("/off", []() { digitalWrite(2, LOW); server.send(200, "text/plain", "KAPALI"); });
   server.begin();
 }
-
-void loop() {
-  server.handleClient();
-}"""
+void loop() { server.handleClient(); }"""
             },
             "esp8266": {
                 "kutuphaneler": "<ESP8266WiFi.h>, <ESP8266WebServer.h>",
-                "baglanti": [{"bilesen": "Dahili LED", "pin": "D4 (Ters Lojik)"}],
-                "kod": """/* ArduKod - NodeMCU ESP8266 Web Sunucusu */
+                "baglanti": [{"bilesen": "Dahili LED", "pin": "D4"}],
+                "kod": """/* ArduKod - NodeMCU Web Server */
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 
 const char* ssid = "WIFI_ADINIZ";
 const char* password = "WIFI_SIFRENIZ";
-
 ESP8266WebServer server(80);
-const int ledPin = D4;
 
 void setup() {
   Serial.begin(115200);
-  pinMode(ledPin, OUTPUT);
-  digitalWrite(ledPin, HIGH); // D4 HIGH iken sönüktür
-
+  pinMode(D4, OUTPUT);
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) { delay(400); Serial.print("."); }
-
-  Serial.println("\nIP Adresi: http://" + WiFi.localIP().toString());
+  while (WiFi.status() != WL_CONNECTED) delay(500);
+  Serial.println(WiFi.localIP());
 
   server.on("/", []() {
-    server.send(200, "text/html", "<h2>NodeMCU Kontrol Paneli</h2><a href='/on'>AC</a> | <a href='/off'>KAPAT</a>");
+    server.send(200, "text/html", "<h2>NodeMCU Kontrol</h2><a href='/on'>AC</a> | <a href='/off'>KAPAT</a>");
   });
-  server.on("/on", []() { digitalWrite(ledPin, LOW); server.send(200, "text/plain", "ACIK"); });
-  server.on("/off", []() { digitalWrite(ledPin, HIGH); server.send(200, "text/plain", "KAPALI"); });
+  server.on("/on", []() { digitalWrite(D4, LOW); server.send(200, "text/plain", "ACIK"); });
+  server.on("/off", []() { digitalWrite(D4, HIGH); server.send(200, "text/plain", "KAPALI"); });
   server.begin();
 }
-
-void loop() {
-  server.handleClient();
-}"""
+void loop() { server.handleClient(); }"""
             }
         }
     }
 }
 
 # ==============================================================================
-# TAM EKRAN HTML & TÜM MODÜLLER (ARAÇLAR, HUB, KÜTÜPHANE)
+# SIFIR GECİKMELİ & MOBİL DUYARLI TAM HTML (TELEFONDA ASLA BOZULMAZ)
 # ==============================================================================
 ANA_SAYFA_HTML = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="google-site-verification" content="rqDx02_kw5Jp7vBu17ScPHz8S4JhS3mQaCxLMV_KsAs" />
     <title>ArduKod - Arduino & ESP32 Mühendislik Portalı</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
@@ -728,20 +769,20 @@ ANA_SAYFA_HTML = """
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 20px;
+            padding: 0 15px;
             flex-shrink: 0;
             z-index: 100;
         }
         .brand { font-size: 18px; font-weight: bold; color: var(--primary); cursor: pointer; }
-        .nav-actions { display: flex; align-items: center; gap: 8px; }
+        .nav-actions { display: flex; align-items: center; gap: 6px; }
         .hub-btn {
             background-color: rgba(0, 151, 157, 0.15);
             color: var(--primary-hover);
             border: 1px solid var(--primary);
-            padding: 6px 12px;
+            padding: 6px 10px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: 600;
             text-decoration: none;
         }
@@ -750,52 +791,60 @@ ANA_SAYFA_HTML = """
         .view-section.active { display: block; }
 
         /* HUB */
-        .hub-wrapper { max-width: 960px; margin: 40px auto; padding: 0 20px; text-align: center; }
-        .hub-title { font-size: 28px; margin-bottom: 8px; }
-        .hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 30px; }
-        .hub-card { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 24px; cursor: pointer; text-align: left; }
-        .hub-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .hub-wrapper { max-width: 960px; margin: 30px auto; padding: 0 15px; text-align: center; }
+        .hub-title { font-size: 26px; margin-bottom: 6px; }
+        .hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 25px; }
+        .hub-card { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 10px; padding: 20px; cursor: pointer; text-align: left; }
+        .hub-card:hover { border-color: var(--primary); }
 
-        /* ARAÇLAR */
-        .tools-wrapper { max-width: 860px; margin: 30px auto; padding: 0 20px; }
-        .tool-card { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 24px; }
-        .tool-title { font-size: 18px; font-weight: bold; margin-bottom: 16px; color: var(--primary); }
-        .resistor-display { background: #2a2015; height: 48px; max-width: 320px; margin: 15px auto 20px auto; border-radius: 10px; display: flex; align-items: center; justify-content: space-around; padding: 0 20px; border: 2px solid #5a4632; }
+        /* TOOLS */
+        .tools-wrapper { max-width: 860px; margin: 25px auto; padding: 0 15px; }
+        .tool-card { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+        .tool-title { font-size: 17px; font-weight: bold; margin-bottom: 14px; color: var(--primary); }
+        .resistor-display { background: #2a2015; height: 44px; max-width: 300px; margin: 15px auto; border-radius: 8px; display: flex; align-items: center; justify-content: space-around; padding: 0 20px; border: 2px solid #5a4632; }
         .resistor-band { width: 14px; height: 100%; border-radius: 2px; }
-        .band-selectors { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
-        select, input[type="text"] { width: 100%; padding: 9px; background-color: var(--bg-color); border: 1px solid var(--border); color: #fff; border-radius: 6px; outline: none; }
-        .result-box { margin-top: 18px; background-color: rgba(0, 151, 157, 0.1); border: 1px solid var(--primary); border-radius: 8px; padding: 14px; text-align: center; font-size: 20px; font-weight: bold; color: var(--accent-green); }
+        .band-selectors { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+        select, input[type="text"] { width: 100%; padding: 8px; background-color: var(--bg-color); border: 1px solid var(--border); color: #fff; border-radius: 6px; outline: none; font-size: 13px; }
+        .result-box { margin-top: 15px; background-color: rgba(0, 151, 157, 0.1); border: 1px solid var(--primary); border-radius: 8px; padding: 12px; text-align: center; font-size: 18px; font-weight: bold; color: var(--accent-green); }
 
-        /* WORKSPACE */
+        /* WORKSPACE (DESKTOP & MOBIL) */
         .workspace-view { display: flex; height: 100%; overflow: hidden; }
-        .sidebar { width: 320px; background-color: var(--panel-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
-        .search-area { padding: 12px 16px; border-bottom: 1px solid var(--border); }
-        .project-list { flex: 1; overflow-y: auto; padding: 12px; }
-        .category-group { margin-bottom: 14px; }
-        .category-title { font-size: 11px; text-transform: uppercase; color: var(--text-sub); font-weight: bold; margin-bottom: 6px; }
-        .project-item { padding: 9px 12px; border-radius: 6px; color: var(--text-main); cursor: pointer; font-size: 13px; margin-bottom: 3px; line-height: 1.3; }
+        .sidebar { width: 300px; background-color: var(--panel-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+        .search-area { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+        .project-list { flex: 1; overflow-y: auto; padding: 10px; }
+        .category-group { margin-bottom: 12px; }
+        .category-title { font-size: 11px; text-transform: uppercase; color: var(--text-sub); font-weight: bold; margin-bottom: 5px; }
+        .project-item { padding: 8px 10px; border-radius: 6px; color: var(--text-main); cursor: pointer; font-size: 13px; margin-bottom: 3px; line-height: 1.3; }
         .project-item:hover { background-color: rgba(0, 151, 157, 0.15); }
         .project-item.active { background-color: var(--primary); color: #fff; font-weight: bold; }
 
-        .content { flex: 1; padding: 24px 35px; overflow-y: auto; width: 100%; }
-        .project-title { font-size: 24px; margin: 0 0 8px 0; }
-        .materials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 20px; }
-        .material-item { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
-        .material-qty { background: rgba(0, 151, 157, 0.2); color: var(--primary-hover); font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-right: 6px; }
-        .btn-buy { background-color: rgba(63, 185, 80, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green); padding: 3px 8px; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: bold; }
+        .content { flex: 1; padding: 20px 25px; overflow-y: auto; width: 100%; }
+        .project-title { font-size: 22px; margin: 0 0 8px 0; }
+        .materials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin-bottom: 18px; }
+        .material-item { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; }
+        .material-qty { background: rgba(0, 151, 157, 0.2); color: var(--primary-hover); font-weight: bold; padding: 2px 5px; border-radius: 4px; margin-right: 5px; }
+        .btn-buy { background-color: rgba(63, 185, 80, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green); padding: 3px 6px; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: bold; }
 
-        .card-tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin: 15px 0; }
-        .card-btn { background-color: var(--panel-bg); border: 1px solid var(--border); color: var(--text-sub); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .card-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin: 12px 0; overflow-x: auto; }
+        .card-btn { background-color: var(--panel-bg); border: 1px solid var(--border); color: var(--text-sub); padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 12.5px; font-weight: bold; white-space: nowrap; }
         .card-btn.active { background-color: var(--primary); border-color: var(--primary); color: white; }
 
-        table { width: 100%; border-collapse: collapse; background-color: var(--panel-bg); border-radius: 8px; border: 1px solid var(--border); }
-        th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+        table { width: 100%; border-collapse: collapse; background-color: var(--panel-bg); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; }
+        th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
         th { background-color: rgba(255, 255, 255, 0.03); color: var(--text-sub); }
         td.pin-cell { color: var(--accent-green); font-family: monospace; font-weight: bold; }
 
-        .code-container { position: relative; margin-top: 10px; }
-        .code-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; z-index: 10; }
-        .btn-action { background-color: #21262d; border: 1px solid var(--border); color: var(--text-sub); padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; }
+        .code-container { position: relative; margin-top: 8px; }
+        .code-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; z-index: 10; }
+        .btn-action { background-color: #21262d; border: 1px solid var(--border); color: var(--text-sub); padding: 5px 10px; font-size: 11.5px; border-radius: 4px; cursor: pointer; }
+
+        /* MOBİL UYUMLULUK KRİTİK AYARI */
+        @media (max-width: 768px) {
+            .workspace-view { flex-direction: column; overflow-y: auto; }
+            .sidebar { width: 100%; height: auto; max-height: 180px; flex-shrink: 0; }
+            .content { padding: 15px 12px; }
+            .project-title { font-size: 18px; }
+        }
     </style>
 </head>
 <body>
@@ -803,34 +852,34 @@ ANA_SAYFA_HTML = """
 <div class="topbar">
     <div class="brand" onclick="ekranDegistir('hub')">⚡ ArduKod</div>
     <div class="nav-actions">
-        <button class="hub-btn" onclick="ekranDegistir('tools')">🛠️ Atölye Araçları</button>
-        <button class="hub-btn" onclick="ekranDegistir('hub')">🎛️ Kart Seçici</button>
+        <button class="hub-btn" onclick="ekranDegistir('tools')">🛠️ Araçlar</button>
+        <button class="hub-btn" onclick="ekranDegistir('hub')">🎛️ Kartlar</button>
         <a href="/admin" class="hub-btn" style="color:var(--accent-blue); border-color:var(--accent-blue);">🔐 Admin</a>
     </div>
 </div>
 
 <div class="main-container">
 
-    <!-- 1. HUB EKRANI -->
+    <!-- 1. HUB -->
     <div id="hubView" class="view-section active">
         <div class="hub-wrapper">
-            <h1 class="hub-title">Geliştirici & Maker Portalı</h1>
-            <div style="color:var(--text-sub);">Hedef platformunuzu veya elektronik hesaplama aracını seçin</div>
+            <h1 class="hub-title">Geliştirici & Maker Merkezi</h1>
+            <div style="color:var(--text-sub);font-size:14px;">Çalışmak istediğiniz kartı veya aracı seçin</div>
             <div class="hub-grid">
-                <div class="hub-card" onclick="kartaGit('uno')"><h3>🔵 Arduino Uno</h3><p style="color:var(--text-sub);font-size:13px;">Klasik 5V lojik devreler ve temel mimari kütüphanesi.</p></div>
-                <div class="hub-card" onclick="kartaGit('nano')"><h3>🔷 Arduino Nano</h3><p style="color:var(--text-sub);font-size:13px;">Breadboard uyumlu kompakt prototip devreleri.</p></div>
-                <div class="hub-card" onclick="kartaGit('esp32')"><h3>⚡ ESP32 (3.3V)</h3><p style="color:var(--text-sub);font-size:13px;">Wi-Fi, Bluetooth, FreeRTOS ve gelişmiş IoT pin mimarisi.</p></div>
-                <div class="hub-card" onclick="kartaGit('esp8266')"><h3>📶 ESP8266 NodeMCU</h3><p style="color:var(--text-sub);font-size:13px;">Ekonomik kablosuz sensör otomasyonları.</p></div>
-                <div class="hub-card" onclick="ekranDegistir('tools')"><h3>🛠️ Atölye Araçları</h3><p style="color:var(--text-sub);font-size:13px;">DIP renk kodları, SMD ve kondansatör hesaplayıcılar.</p></div>
+                <div class="hub-card" onclick="kartaGit('uno')"><h3>🔵 Arduino Uno</h3><p style="color:var(--text-sub);font-size:12.5px;">5V lojik ve başlangıç seviyesi devreler.</p></div>
+                <div class="hub-card" onclick="kartaGit('nano')"><h3>🔷 Arduino Nano</h3><p style="color:var(--text-sub);font-size:12.5px;">Breadboard uyumlu kompakt prototipler.</p></div>
+                <div class="hub-card" onclick="kartaGit('esp32')"><h3>⚡ ESP32 (3.3V)</h3><p style="color:var(--text-sub);font-size:12.5px;">Wi-Fi, Bluetooth ve IoT pin konfigürasyonu.</p></div>
+                <div class="hub-card" onclick="kartaGit('esp8266')"><h3>📶 ESP8266 NodeMCU</h3><p style="color:var(--text-sub);font-size:12.5px;">Ekonomik kablosuz sensör projeleri.</p></div>
+                <div class="hub-card" onclick="ekranDegistir('tools')"><h3>🛠️ Atölye Araçları</h3><p style="color:var(--text-sub);font-size:12.5px;">DIP, SMD ve kondansatör kod çözücüler.</p></div>
             </div>
         </div>
     </div>
 
-    <!-- 2. ATÖLYE ARAÇLARI EKRANI -->
+    <!-- 2. ATÖLYE ARAÇLARI -->
     <div id="toolsView" class="view-section">
         <div class="tools-wrapper">
             <div class="tool-card">
-                <div class="tool-title">🎨 DIP Direnç Renk Kodu Hesaplayıcı (4 Bant)</div>
+                <div class="tool-title">🎨 DIP Direnç Renk Kodu Hesaplayıcı</div>
                 <div class="resistor-display">
                     <div id="band1-view" class="resistor-band" style="background:#a52a2a;"></div>
                     <div id="band2-view" class="resistor-band" style="background:#000000;"></div>
@@ -841,7 +890,7 @@ ANA_SAYFA_HTML = """
                     <div>
                         <select id="dip-b1" onchange="dipHesapla()">
                             <option value="0" data-color="#000000">Siyah (0)</option>
-                            <option value="1" data-color="#a52a2a" selected>Kahverengi (1)</option>
+                            <option value="1" data-color="#a52a2a" selected>Kahve (1)</option>
                             <option value="2" data-color="#ff0000">Kırmızı (2)</option>
                             <option value="3" data-color="#ff7f00">Turuncu (3)</option>
                             <option value="4" data-color="#ffff00">Sarı (4)</option>
@@ -855,7 +904,7 @@ ANA_SAYFA_HTML = """
                     <div>
                         <select id="dip-b2" onchange="dipHesapla()">
                             <option value="0" data-color="#000000" selected>Siyah (0)</option>
-                            <option value="1" data-color="#a52a2a">Kahverengi (1)</option>
+                            <option value="1" data-color="#a52a2a">Kahve (1)</option>
                             <option value="2" data-color="#ff0000">Kırmızı (2)</option>
                             <option value="3" data-color="#ff7f00">Turuncu (3)</option>
                             <option value="4" data-color="#ffff00">Sarı (4)</option>
@@ -892,7 +941,7 @@ ANA_SAYFA_HTML = """
             </div>
 
             <div class="tool-card">
-                <div class="tool-title">🔍 SMD Direnç Kodu Çözücü (3 ve 4 Hane)</div>
+                <div class="tool-title">🔍 SMD Direnç Kodu Çözücü</div>
                 <input type="text" id="smdInput" placeholder="Örn: 110 veya 4R7" oninput="smdHesapla()">
                 <div class="result-box" id="smdSonuc">11 Ω (±%5)</div>
             </div>
@@ -905,7 +954,7 @@ ANA_SAYFA_HTML = """
         </div>
     </div>
 
-    <!-- 3. PROJE ÇALIŞMA ALANI -->
+    <!-- 3. PROJE VE KOD ALANI -->
     <div id="workspaceView" class="view-section">
         <div class="workspace-view">
             <div class="sidebar">
@@ -915,11 +964,11 @@ ANA_SAYFA_HTML = """
                 <div id="projectList" class="project-list"></div>
             </div>
 
-            <div class="content">
+            <div class="content" id="contentArea">
                 <h1 id="pBaslik" class="project-title"></h1>
-                <div style="margin-bottom:15px; color:var(--text-sub); font-size:13px;" id="pMeta"></div>
+                <div style="margin-bottom:12px; color:var(--text-sub); font-size:12.5px;" id="pMeta"></div>
 
-                <div style="font-weight:bold; color:var(--primary); margin-bottom:10px;">📦 Gereken Malzemeler & Ürünler</div>
+                <div style="font-weight:bold; color:var(--primary); margin-bottom:8px; font-size:13.5px;">📦 Gereken Malzemeler</div>
                 <div class="materials-grid" id="pMalzemeler"></div>
 
                 <div class="card-tabs">
@@ -929,16 +978,16 @@ ANA_SAYFA_HTML = """
                     <button class="card-btn" id="tab-esp8266" onclick="kartSec('esp8266')">📶 ESP8266</button>
                 </div>
 
-                <div style="font-weight:bold; color:var(--primary); margin:15px 0 8px 0;">🔌 Pin Bağlantı Tablosu</div>
+                <div style="font-weight:bold; color:var(--primary); margin:14px 0 6px 0; font-size:13.5px;">🔌 Pin Bağlantı Tablosu</div>
                 <table>
                     <thead><tr><th>Bileşen / Pin</th><th>Kart Bağlantısı</th></tr></thead>
                     <tbody id="pTablo"></tbody>
                 </table>
 
-                <div style="font-weight:bold; color:var(--primary); margin:20px 0 5px 0;">📚 Kütüphaneler</div>
-                <p id="pKutuphane" style="color:var(--text-sub); margin:0; font-size:13.5px;"></p>
+                <div style="font-weight:bold; color:var(--primary); margin:16px 0 4px 0; font-size:13.5px;">📚 Kütüphaneler</div>
+                <p id="pKutuphane" style="color:var(--text-sub); margin:0; font-size:13px;"></p>
 
-                <div style="font-weight:bold; color:var(--primary); margin:20px 0 8px 0;">💻 C++ Kaynak Kodu (Doğrulanmış & Detaylı)</div>
+                <div style="font-weight:bold; color:var(--primary); margin:16px 0 6px 0; font-size:13.5px;">💻 C++ Kaynak Kodu</div>
                 <div class="code-container">
                     <div class="code-actions">
                         <button class="btn-action" onclick="koduKopyala()">📋 Kopyala</button>
@@ -957,7 +1006,7 @@ ANA_SAYFA_HTML = """
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
 
 <script>
-    // VERİLER DOĞRUDAN BELLEKTE (AĞ İSTEĞİ BEKLEMEZ, SIFIR GECİKME)
+    // 15+ PROJE DOĞRUDAN HAFIZAYA ENJEKTE EDİLDİ
     const VERI_HAVUZU = {{ projeler_json | safe }};
     let aktifKart = 'uno';
     let aktifProjeId = '';
@@ -981,7 +1030,7 @@ ANA_SAYFA_HTML = """
     window.onload = () => {
         listeyiOlustur(VERI_HAVUZU);
         const ilkId = Object.keys(VERI_HAVUZU)[0];
-        if (ilkId) projeSec(ilkId);
+        if (ilkId) projeSec(ilkId, false);
         dipHesapla(); smdHesapla(); capHesapla();
     };
 
@@ -1005,14 +1054,15 @@ ANA_SAYFA_HTML = """
                 item.className = 'project-item';
                 item.innerText = p.baslik;
                 item.id = `item-${p.id}`;
-                item.onclick = () => projeSec(p.id);
+                // Tıklandığında mobilde sayfayı aşağı (kod alanına) kaydır
+                item.onclick = () => projeSec(p.id, true);
                 grupDiv.appendChild(item);
             });
             listDiv.appendChild(grupDiv);
         }
     }
 
-    function projeSec(id) {
+    function projeSec(id, kaydir = false) {
         aktifProjeId = id;
         document.querySelectorAll('.project-item').forEach(el => el.classList.remove('active'));
         const secili = document.getElementById(`item-${id}`);
@@ -1038,6 +1088,11 @@ ANA_SAYFA_HTML = """
         });
 
         kartGoster(aktifKart);
+
+        // MOBİL DÜZELTMESİ: Kullanıcı telefondaysa menüden tıklayınca doğrudan koda kaydır
+        if (kaydir && window.innerWidth <= 768) {
+            document.getElementById('contentArea').scrollIntoView({ behavior: 'smooth' });
+        }
     }
 
     function kartSec(kartAdi) {
@@ -1080,7 +1135,7 @@ ANA_SAYFA_HTML = """
     });
 
     function koduKopyala() {
-        navigator.clipboard.writeText(document.getElementById('pKod').textContent).then(() => alert('Kod panoya kopyalandı!'));
+        navigator.clipboard.writeText(document.getElementById('pKod').textContent).then(() => alert('Kod kopyalandı!'));
     }
 
     function inoIndir() {
@@ -1092,7 +1147,7 @@ ANA_SAYFA_HTML = """
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
-    // DİRENÇ VE KONDANSATÖR ARAÇLARI
+    // DİRENÇ & KONDANSATÖR
     function dipHesapla() {
         const b1 = document.getElementById('dip-b1'), b2 = document.getElementById('dip-b2'), b3 = document.getElementById('dip-b3'), b4 = document.getElementById('dip-b4');
         document.getElementById('band1-view').style.background = b1.options[b1.selectedIndex].dataset.color;
@@ -1101,12 +1156,12 @@ ANA_SAYFA_HTML = """
         document.getElementById('band4-view').style.background = b4.options[b4.selectedIndex].dataset.color;
 
         const val = parseFloat(((parseInt(b1.value) * 10 + parseInt(b2.value)) * parseFloat(b3.value)).toFixed(2));
-        if (val === 0) { document.getElementById('dipSonuc').innerText = '0 Ω (Jumper Direnç)'; return; }
+        if (val === 0) { document.getElementById('dipSonuc').innerText = '0 Ω (Jumper)'; return; }
 
-        let formatted = val + ' Ω';
-        if (val >= 1000000) formatted = (val / 1000000).toFixed(val % 1000000 === 0 ? 0 : 2) + ' MΩ';
-        else if (val >= 1000) formatted = (val / 1000).toFixed(val % 1000 === 0 ? 0 : 1) + ' kΩ';
-        document.getElementById('dipSonuc').innerText = `${formatted} ${b4.value}`;
+        let f = val + ' Ω';
+        if (val >= 1000000) f = (val / 1000000).toFixed(val % 1000000 === 0 ? 0 : 2) + ' MΩ';
+        else if (val >= 1000) f = (val / 1000).toFixed(val % 1000 === 0 ? 0 : 1) + ' kΩ';
+        document.getElementById('dipSonuc').innerText = `${f} ${b4.value}`;
     }
 
     function smdHesapla() {
@@ -1124,7 +1179,7 @@ ANA_SAYFA_HTML = """
             let val = parseInt(code.substring(0, 3)) * Math.pow(10, parseInt(code[3]));
             out.innerText = val >= 1000 ? (val/1000) + ' kΩ (±%1)' : val + ' Ω (±%1)'; return;
         }
-        out.innerText = 'Geçersiz Kod (110, 4R7, 1002)';
+        out.innerText = 'Geçersiz Kod';
     }
 
     function capHesapla() {
@@ -1133,14 +1188,11 @@ ANA_SAYFA_HTML = """
         let tol = "";
         const tMap = {'J':'±%5', 'K':'±%10', 'M':'±%20'};
         if (tMap[raw.slice(-1)]) { tol = ` [${tMap[raw.slice(-1)]}]`; raw = raw.slice(0, -1); }
-
         if (/^\d{3}$/.test(raw)) {
             let pf = parseInt(raw.substring(0, 2)) * Math.pow(10, parseInt(raw[2]));
-            let nf = pf / 1000;
-            let uf = pf / 1000000;
-            out.innerText = `${nf} nF (${uf} µF / ${pf.toLocaleString()} pF)${tol}`; return;
+            out.innerText = `${pf/1000} nF (${pf/1000000} µF / ${pf.toLocaleString()} pF)${tol}`; return;
         }
-        out.innerText = 'Geçersiz Kod (104, 223J, 471K)';
+        out.innerText = 'Geçersiz Kod';
     }
 </script>
 </body>
@@ -1152,7 +1204,7 @@ def index():
     return render_template_string(ANA_SAYFA_HTML, projeler_json=json.dumps(PROJELER))
 
 # ==============================================================================
-# GİZLİ ADMİN PANELİ (ŞİFRE EKRANDA YAZMAZ)
+# GİZLİ ADMİN PANELİ (ŞİFRE EKRANDA ASLA YAZMAZ)
 # ==============================================================================
 ADMIN_LOGIN_HTML = """
 <!DOCTYPE html><html><head><meta charset="utf-8"><title>Yönetici Girişi</title>
@@ -1176,7 +1228,7 @@ th,td{padding:12px;border-bottom:1px solid #30363d;text-align:left;}th{backgroun
 .btn{padding:8px 14px;border-radius:4px;cursor:pointer;border:none;font-weight:bold;text-decoration:none;}
 .btn-blue{background:#1f6feb;color:#fff;}.btn-red{background:#da3633;color:#fff;}
 </style></head><body>
-<div class="top"><h2>⚡ ArduKod Canlı Yönetim</h2><div><a href="/" target="_blank" class="btn btn-blue">Siteye Git</a> <a href="/admin/cikis" class="btn btn-red">Çıkış</a></div></div>
+<div class="top"><h2>⚡ ArduKod Yönetim Paneli</h2><div><a href="/" target="_blank" class="btn btn-blue">Siteye Git</a> <a href="/admin/cikis" class="btn btn-red">Çıkış</a></div></div>
 <table><thead><tr><th>ID</th><th>Başlık</th><th>Kategori</th><th>Durum</th></tr></thead>
 <tbody>{% for pid, p in projeler.items() %}<tr><td><code>{{ pid }}</code></td><td><b>{{ p.baslik }}</b></td><td>{{ p.kategori }}</td><td style="color:#3fb950;">Yayında (Aktif)</td></tr>{% endfor %}</tbody></table>
 </body></html>

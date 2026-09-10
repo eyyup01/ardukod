@@ -111,7 +111,7 @@
         .hub-card-title { font-size: 17px; font-weight: bold; margin-bottom: 6px; }
         .hub-card-desc { font-size: 13px; color: var(--text-sub); line-height: 1.4; }
 
-        /* 2. DİRENÇ HESAPLAMA ARAÇLARI */
+        /* 2. ATÖLYE HESAPLAMA ARAÇLARI */
         .tools-wrapper {
             max-width: 860px;
             margin: 30px auto;
@@ -313,7 +313,7 @@
 <div class="topbar">
     <div class="brand" onclick="ekranDegistir('hub')">⚡ ArduKod</div>
     <div class="nav-actions">
-        <button class="hub-btn" onclick="ekranDegistir('tools')">🛠️ Direnç Araçları</button>
+        <button class="hub-btn" onclick="ekranDegistir('tools')">🛠️ Atölye Araçları</button>
         <button class="hub-btn" onclick="ekranDegistir('hub')">🎛️ Kart Seçici</button>
     </div>
 </div>
@@ -348,14 +348,14 @@
                 </div>
                 <div class="hub-card" onclick="ekranDegistir('tools')">
                     <div class="hub-card-icon">🛠️</div>
-                    <div class="hub-card-title">Direnç Araçları</div>
-                    <div class="hub-card-desc">DIP renk kodları (0-9 ve altın/gümüş) ve SMD kod çözücü.</div>
+                    <div class="hub-card-title">Atölye Araçları</div>
+                    <div class="hub-card-desc">DIP & SMD direnç hesaplayıcıları ve kondansatör (pF/nF/µF) çözücü.</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 2. DİRENÇ HESAPLAMA ARAÇLARI EKRANI -->
+    <!-- 2. ATÖLYE HESAPLAMA ARAÇLARI EKRANI -->
     <div id="toolsView" class="view-section">
         <div class="tools-wrapper">
             <!-- DIP Direnç -->
@@ -435,6 +435,14 @@
                 <input type="text" id="smdInput" placeholder="Örn: 110 veya 4R7" oninput="smdHesapla()">
                 <div class="result-box" id="smdSonuc">11 Ω (±%5)</div>
             </div>
+
+            <!-- Kondansatör (Kapasitör) Kod Çözücü -->
+            <div class="tool-card">
+                <div class="tool-title">⚡ Kondansatör Kod Çözücü (Mercimek & Polyester)</div>
+                <div style="font-size: 13px; color: var(--text-sub); margin-bottom: 12px;">Kondansatör üzerindeki kodu yazın (Örn: 104, 223J, 471K, 4n7, 2p2):</div>
+                <input type="text" id="capInput" placeholder="Örn: 104 veya 104J" oninput="capHesapla()">
+                <div class="result-box" id="capSonuc">100 nF (0.1 µF / 100,000 pF)</div>
+            </div>
         </div>
     </div>
 
@@ -510,6 +518,7 @@
             document.getElementById('toolsView').classList.add('active');
             dipHesapla();
             smdHesapla();
+            capHesapla();
         }
         if (ekranAdi === 'workspace') document.getElementById('workspaceView').classList.add('active');
     }
@@ -527,6 +536,7 @@
         if (tumProjeler.length > 0) projeYukle(tumProjeler[0].id);
         dipHesapla();
         smdHesapla();
+        capHesapla();
     };
 
     function listeyiCiz(projeler) {
@@ -595,10 +605,8 @@
         if (!aktifProjeVerisi || !aktifProjeVerisi.kartlar) return;
         const kartBilgisi = aktifProjeVerisi.kartlar[kartAdi] || aktifProjeVerisi.kartlar['uno'];
 
-        // Kütüphane bilgisi
         document.getElementById('pKutuphane').innerText = kartBilgisi.kutuphaneler || aktifProjeVerisi.kutuphaneler || 'Harici kütüphane gerekmez.';
 
-        // Pin Tablosu
         const tbody = document.getElementById('pTablo');
         tbody.innerHTML = '';
         kartBilgisi.baglanti.forEach(b => {
@@ -607,7 +615,6 @@
             tbody.appendChild(tr);
         });
 
-        // Kod
         const kodEl = document.getElementById('pKod');
         kodEl.textContent = kartBilgisi.kod;
         Prism.highlightElement(kodEl);
@@ -704,6 +711,77 @@
         if (val >= 1000000) return (val / 1000000) + ' MΩ (±%5)';
         if (val >= 1000) return (val / 1000) + ' kΩ (±%5)';
         return val + ' Ω (±%5)';
+    }
+
+    // KONDANSATÖR (KAPASİTÖR) HESAPLAYICI (pF, nF, µF)
+    function capHesapla() {
+        let raw = document.getElementById('capInput').value.trim().toUpperCase();
+        if (!raw) raw = "104";
+
+        const out = document.getElementById('capSonuc');
+
+        // Harfli tolerans ayıklama (J: %5, K: %10, M: %20)
+        let tolStr = "";
+        const tolMap = { 'F': '±%1', 'G': '±%2', 'J': '±%5', 'K': '±%10', 'M': '±%20', 'Z': '+%80/-%20' };
+        let lastChar = raw.slice(-1);
+        let codePart = raw;
+
+        if (tolMap[lastChar]) {
+            tolStr = ` [Tolerans: ${tolMap[lastChar]}]`;
+            codePart = raw.slice(0, -1);
+        }
+
+        // Harfli formatlar (4n7, 2p2, 1u5 vb.)
+        if (/[NPU]/.test(codePart)) {
+            let val = 0;
+            if (codePart.includes('N')) {
+                val = parseFloat(codePart.replace('N', '.'));
+                let pf = val * 1000;
+                let uf = val / 1000;
+                out.innerText = `${val} nF (${uf} µF / ${pf.toLocaleString()} pF)${tolStr}`;
+                return;
+            }
+            if (codePart.includes('P')) {
+                val = parseFloat(codePart.replace('P', '.'));
+                out.innerText = `${val} pF (${val / 1000} nF)${tolStr}`;
+                return;
+            }
+            if (codePart.includes('U')) {
+                val = parseFloat(codePart.replace('U', '.'));
+                out.innerText = `${val} µF (${val * 1000} nF)${tolStr}`;
+                return;
+            }
+        }
+
+        // 3 Haneli Standart Kod (Örn: 104 -> 10 x 10^4 pF = 100,000 pF = 100 nF = 0.1 µF)
+        if (/^\d{3}$/.test(codePart)) {
+            const sig = parseInt(codePart.substring(0, 2));
+            const mul = parseInt(codePart.charAt(2));
+            const pf = sig * Math.pow(10, mul);
+            const nf = pf / 1000;
+            const uf = pf / 1000000;
+
+            let anaGosterim = "";
+            if (nf >= 1 && nf < 1000) {
+                anaGosterim = `${nf} nF (${uf} µF / ${pf.toLocaleString()} pF)`;
+            } else if (uf >= 1) {
+                anaGosterim = `${uf} µF (${nf.toLocaleString()} nF)`;
+            } else {
+                anaGosterim = `${pf.toLocaleString()} pF (${nf} nF / ${uf} µF)`;
+            }
+
+            out.innerText = `${anaGosterim}${tolStr}`;
+            return;
+        }
+
+        // 1 veya 2 Haneli doğrudan pF değeri (Örn: 22 -> 22 pF)
+        if (/^\d{1,2}$/.test(codePart)) {
+            const pf = parseInt(codePart);
+            out.innerText = `${pf} pF (${(pf / 1000).toFixed(3)} nF)${tolStr}`;
+            return;
+        }
+
+        out.innerText = 'Geçersiz Kod (Örn: 104, 223J, 471K, 4n7)';
     }
 </script>
 

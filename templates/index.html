@@ -378,7 +378,8 @@
                     <div>
                         <div class="select-label">1. BANT (1. Sayı)</div>
                         <select id="dip-b1" onchange="dipHesapla()">
-                            <option value="1" data-color="#a52a2a">Kahverengi (1)</option>
+                            <option value="0" data-color="#000000">Siyah (0)</option>
+                            <option value="1" data-color="#a52a2a" selected>Kahverengi (1)</option>
                             <option value="2" data-color="#ff0000">Kırmızı (2)</option>
                             <option value="3" data-color="#ff7f00">Turuncu (3)</option>
                             <option value="4" data-color="#ffff00">Sarı (4)</option>
@@ -407,6 +408,8 @@
                     <div>
                         <div class="select-label">3. BANT (Çarpan)</div>
                         <select id="dip-b3" onchange="dipHesapla()">
+                            <option value="0.01" data-color="#c0c0c0">x0.01 Ω (Gümüş)</option>
+                            <option value="0.1" data-color="#d4af37">x0.1 Ω (Altın)</option>
                             <option value="1" data-color="#000000">x1 Ω (Siyah)</option>
                             <option value="10" data-color="#a52a2a">x10 Ω (Kahve)</option>
                             <option value="100" data-color="#ff0000" selected>x100 Ω (Kırmızı)</option>
@@ -650,8 +653,13 @@
         document.getElementById('band3-view').style.background = b3.options[b3.selectedIndex].dataset.color;
         document.getElementById('band4-view').style.background = b4.options[b4.selectedIndex].dataset.color;
 
-        const val = (parseInt(b1.value) * 10 + parseInt(b2.value)) * parseFloat(b3.value);
+        const val = parseFloat(((parseInt(b1.value) * 10 + parseInt(b2.value)) * parseFloat(b3.value)).toFixed(2));
         const tol = b4.value;
+
+        if (val === 0) {
+            document.getElementById('dipSonuc').innerText = `0 Ω (Jumper / Köprü Direnç)`;
+            return;
+        }
 
         let formatted = val + ' Ω';
         if (val >= 1000000) formatted = (val / 1000000).toFixed(val % 1000000 === 0 ? 0 : 2) + ' MΩ';
@@ -661,7 +669,7 @@
     }
 
     // ==========================================
-    // SMD DİRENÇ ÇÖZÜCÜ MOTORU (110 -> 11 Ohm)
+    // SMD DİRENÇ ÇÖZÜCÜ MOTORU
     // ==========================================
     function smdHesapla() {
         let code = document.getElementById('smdInput').value.trim().toUpperCase();
@@ -669,7 +677,6 @@
 
         const out = document.getElementById('smdSonuc');
 
-        // R Harfi İçerenler (4R7, R22 vb.)
         if (code.includes('R')) {
             let replaced = code.replace('R', '.');
             if (replaced.startsWith('.')) replaced = '0' + replaced;
@@ -677,7 +684,6 @@
             return;
         }
 
-        // 3 Haneli Kod (Örn: 110 -> 11 * 10^0 = 11 Ohm)
         if (/^\d{3}$/.test(code)) {
             const significant = parseInt(code.substring(0, 2));
             const multiplier = Math.pow(10, parseInt(code.charAt(2)));
@@ -686,7 +692,6 @@
             return;
         }
 
-        // 4 Haneli Kod (Örn: 1002 -> 100 * 10^2 = 10k Ohm)
         if (/^\d{4}$/.test(code)) {
             const significant = parseInt(code.substring(0, 3));
             const multiplier = Math.pow(10, parseInt(code.charAt(3)));

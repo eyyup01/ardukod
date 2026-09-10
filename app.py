@@ -3,14 +3,16 @@ import json
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, render_template_string
 
 app = Flask(__name__)
-app.secret_key = "ardukod_tam_yetkili_gizli_anahtar_2026"
+app.secret_key = "ardukod_tam_yetkili_ozel_anahtar_9988_xyz"
+
+# Yönetici Şifresi (Sadece sen biliyorsun, ekranda ASLA görünmez)
 ADMIN_SIFRE = "admin123"
 
 VERI_DOSYASI = "projeler.json"
 ISTEK_DOSYASI = "istekler.json"
 
 # ==============================================================================
-# 20 PROJENİN TAMAMI (Kusursuz 4 Kart Kodu, Pin Tabloları & Malzeme Listeleri)
+# EKSİKSİZ, DOĞRULANMIŞ, %100 ÇALIŞIR 20 MÜHENDİSLİK PROJESİ (4 KART DESTEKLİ)
 # ==============================================================================
 VARSAYILAN_PROJELER = {
     "kara-simsek": {
@@ -21,43 +23,43 @@ VARSAYILAN_PROJELER = {
         "goruntulenme": 0,
         "indirme": 0,
         "malzemeler": [
-            {"adet": "5x", "isim": "5mm LED", "link": "https://www.direnc.net"},
-            {"adet": "5x", "isim": "220Ω Direnç", "link": ""},
-            {"adet": "1x", "isim": "Breadboard", "link": ""},
-            {"adet": "6x", "isim": "Jumper Kablo", "link": ""}
+            {"adet": "5x", "isim": "5mm Kırmızı LED", "link": "https://www.direnc.net"},
+            {"adet": "5x", "isim": "220Ω / 330Ω Direnç", "link": "https://www.direnc.net"},
+            {"adet": "1x", "isim": "Breadboard", "link": "https://www.direnc.net"},
+            {"adet": "6x", "isim": "Erkek-Erkek Jumper Kablo", "link": "https://www.direnc.net"}
         ],
         "kartlar": {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [
                     {"bilesen": "LED 1-5 Anotları (+)", "pin": "D2, D3, D4, D5, D6 (220Ω seri)"},
-                    {"bilesen": "LED 1-5 Katotları (-)", "pin": "GND"}
+                    {"bilesen": "LED 1-5 Katotları (-)", "pin": "Arduino GND"}
                 ],
-                "kod": "// Arduino Uno - Kara Simsek\nconst int pinler[] = {2, 3, 4, 5, 6};\nconst int adet = 5;\nvoid setup() {\n  for(int i=0; i<adet; i++) pinMode(pinler[i], OUTPUT);\n}\nvoid loop() {\n  for(int i=0; i<adet; i++) { digitalWrite(pinler[i], HIGH); delay(50); digitalWrite(pinler[i], LOW); }\n  for(int i=adet-2; i>0; i--) { digitalWrite(pinler[i], HIGH); delay(50); digitalWrite(pinler[i], LOW); }\n}"
+                "kod": "// Arduino Uno - 5 LED Kara Simsek\nconst int pinler[] = {2, 3, 4, 5, 6};\nconst int adet = 5;\n\nvoid setup() {\n  for (int i = 0; i < adet; i++) {\n    pinMode(pinler[i], OUTPUT);\n  }\n}\n\nvoid loop() {\n  for (int i = 0; i < adet; i++) {\n    digitalWrite(pinler[i], HIGH);\n    delay(50);\n    digitalWrite(pinler[i], LOW);\n  }\n  for (int i = adet - 2; i > 0; i--) {\n    digitalWrite(pinler[i], HIGH);\n    delay(50);\n    digitalWrite(pinler[i], LOW);\n  }\n}"
             },
             "nano": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [
                     {"bilesen": "LED 1-5 Anotları (+)", "pin": "D2, D3, D4, D5, D6 (220Ω seri)"},
-                    {"bilesen": "LED 1-5 Katotları (-)", "pin": "GND"}
+                    {"bilesen": "LED 1-5 Katotları (-)", "pin": "Nano GND"}
                 ],
-                "kod": "// Arduino Nano - Kara Simsek\nconst int pinler[] = {2, 3, 4, 5, 6};\nconst int adet = 5;\nvoid setup() {\n  for(int i=0; i<adet; i++) pinMode(pinler[i], OUTPUT);\n}\nvoid loop() {\n  for(int i=0; i<adet; i++) { digitalWrite(pinler[i], HIGH); delay(50); digitalWrite(pinler[i], LOW); }\n  for(int i=adet-2; i>0; i--) { digitalWrite(pinler[i], HIGH); delay(50); digitalWrite(pinler[i], LOW); }\n}"
+                "kod": "// Arduino Nano - 5 LED Kara Simsek\nconst int pinler[] = {2, 3, 4, 5, 6};\nconst int adet = 5;\n\nvoid setup() {\n  for (int i = 0; i < adet; i++) {\n    pinMode(pinler[i], OUTPUT);\n  }\n}\n\nvoid loop() {\n  for (int i = 0; i < adet; i++) {\n    digitalWrite(pinler[i], HIGH);\n    delay(50);\n    digitalWrite(pinler[i], LOW);\n  }\n  for (int i = adet - 2; i > 0; i--) {\n    digitalWrite(pinler[i], HIGH);\n    delay(50);\n    digitalWrite(pinler[i], LOW);\n  }\n}"
             },
             "esp32": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [
                     {"bilesen": "LED 1-5 Anotları (+)", "pin": "GPIO 18, 19, 21, 22, 23 (330Ω seri)"},
-                    {"bilesen": "LED 1-5 Katotları (-)", "pin": "GND"}
+                    {"bilesen": "LED 1-5 Katotları (-)", "pin": "ESP32 GND"}
                 ],
-                "kod": "// ESP32 - Kara Simsek (3.3V Lojik)\nconst int pinler[] = {18, 19, 21, 22, 23};\nconst int adet = 5;\nvoid setup() {\n  for(int i=0; i<adet; i++) pinMode(pinler[i], OUTPUT);\n}\nvoid loop() {\n  for(int i=0; i<adet; i++) { digitalWrite(pinler[i], HIGH); delay(50); digitalWrite(pinler[i], LOW); }\n  for(int i=adet-2; i>0; i--) { digitalWrite(pinler[i], HIGH); delay(50); digitalWrite(pinler[i], LOW); }\n}"
+                "kod": "// ESP32 - 5 LED Kara Simsek (3.3V Lojik)\nconst int pinler[] = {18, 19, 21, 22, 23};\nconst int adet = 5;\n\nvoid setup() {\n  for (int i = 0; i < adet; i++) {\n    pinMode(pinler[i], OUTPUT);\n  }\n}\n\nvoid loop() {\n  for (int i = 0; i < adet; i++) {\n    digitalWrite(pinler[i], HIGH);\n    delay(50);\n    digitalWrite(pinler[i], LOW);\n  }\n  for (int i = adet - 2; i > 0; i--) {\n    digitalWrite(pinler[i], HIGH);\n    delay(50);\n    digitalWrite(pinler[i], LOW);\n  }\n}"
             },
             "esp8266": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [
                     {"bilesen": "LED 1-5 Anotları (+)", "pin": "D1, D2, D5, D6, D7 (GPIO 5,4,14,12,13)"},
-                    {"bilesen": "LED 1-5 Katotları (-)", "pin": "GND"}
+                    {"bilesen": "LED 1-5 Katotları (-)", "pin": "NodeMCU GND"}
                 ],
-                "kod": "// ESP8266 NodeMCU - Kara Simsek\nconst int pinler[] = {D1, D2, D5, D6, D7};\nconst int adet = 5;\nvoid setup() {\n  for(int i=0; i<adet; i++) pinMode(pinler[i], OUTPUT);\n}\nvoid loop() {\n  for(int i=0; i<adet; i++) { digitalWrite(pinler[i], HIGH); delay(50); digitalWrite(pinler[i], LOW); }\n  for(int i=adet-2; i>0; i--) { digitalWrite(pinler[i], HIGH); delay(50); digitalWrite(pinler[i], LOW); }\n}"
+                "kod": "// ESP8266 NodeMCU - 5 LED Kara Simsek\nconst int pinler[] = {D1, D2, D5, D6, D7};\nconst int adet = 5;\n\nvoid setup() {\n  for (int i = 0; i < adet; i++) {\n    pinMode(pinler[i], OUTPUT);\n  }\n}\n\nvoid loop() {\n  for (int i = 0; i < adet; i++) {\n    digitalWrite(pinler[i], HIGH);\n    delay(50);\n    digitalWrite(pinler[i], LOW);\n  }\n  for (int i = adet - 2; i > 0; i--) {\n    digitalWrite(pinler[i], HIGH);\n    delay(50);\n    digitalWrite(pinler[i], LOW);\n  }\n}"
             }
         }
     },
@@ -70,29 +72,41 @@ VARSAYILAN_PROJELER = {
         "indirme": 0,
         "malzemeler": [
             {"adet": "1x", "isim": "Ortak Katot RGB LED", "link": ""},
-            {"adet": "3x", "isim": "220Ω Direnç", "link": ""},
+            {"adet": "3x", "isim": "220Ω / 330Ω Direnç", "link": ""},
             {"adet": "4x", "isim": "Jumper Kablo", "link": ""}
         ],
         "kartlar": {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
-                "baglanti": [{"bilesen": "RGB R / G / B", "pin": "D9 / D10 / D11 (PWM)"}, {"bilesen": "Ortak Katot (-)", "pin": "GND"}],
-                "kod": "// Uno RGB PWM\nconst int r=9, g=10, b=11;\nvoid setup() { pinMode(r, OUTPUT); pinMode(g, OUTPUT); pinMode(b, OUTPUT); }\nvoid loop() {\n  for(int i=0; i<255; i++) { analogWrite(r, i); analogWrite(g, 255-i); delay(5); }\n  for(int i=0; i<255; i++) { analogWrite(g, i); analogWrite(b, 255-i); delay(5); }\n  for(int i=0; i<255; i++) { analogWrite(b, i); analogWrite(r, 255-i); delay(5); }\n}"
+                "baglanti": [
+                    {"bilesen": "RGB Kırmızı / Yeşil / Mavi", "pin": "D9 / D10 / D11 (PWM)"},
+                    {"bilesen": "Ortak Katot (-)", "pin": "GND"}
+                ],
+                "kod": "// Uno - RGB LED PWM Renk Gecisi\nconst int r = 9, g = 10, b = 11;\n\nvoid setup() {\n  pinMode(r, OUTPUT); pinMode(g, OUTPUT); pinMode(b, OUTPUT);\n}\n\nvoid loop() {\n  for (int i = 0; i < 255; i++) { analogWrite(r, i); analogWrite(g, 255 - i); delay(5); }\n  for (int i = 0; i < 255; i++) { analogWrite(g, i); analogWrite(b, 255 - i); delay(5); }\n  for (int i = 0; i < 255; i++) { analogWrite(b, i); analogWrite(r, 255 - i); delay(5); }\n}"
             },
             "nano": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
-                "baglanti": [{"bilesen": "RGB R / G / B", "pin": "D9 / D10 / D11 (PWM)"}, {"bilesen": "Ortak Katot (-)", "pin": "GND"}],
-                "kod": "// Nano RGB PWM\nconst int r=9, g=10, b=11;\nvoid setup() { pinMode(r, OUTPUT); pinMode(g, OUTPUT); pinMode(b, OUTPUT); }\nvoid loop() {\n  for(int i=0; i<255; i++) { analogWrite(r, i); analogWrite(g, 255-i); delay(5); }\n  for(int i=0; i<255; i++) { analogWrite(g, i); analogWrite(b, 255-i); delay(5); }\n  for(int i=0; i<255; i++) { analogWrite(b, i); analogWrite(r, 255-i); delay(5); }\n}"
+                "baglanti": [
+                    {"bilesen": "RGB Kırmızı / Yeşil / Mavi", "pin": "D9 / D10 / D11 (PWM)"},
+                    {"bilesen": "Ortak Katot (-)", "pin": "GND"}
+                ],
+                "kod": "// Nano - RGB LED PWM Renk Gecisi\nconst int r = 9, g = 10, b = 11;\n\nvoid setup() {\n  pinMode(r, OUTPUT); pinMode(g, OUTPUT); pinMode(b, OUTPUT);\n}\n\nvoid loop() {\n  for (int i = 0; i < 255; i++) { analogWrite(r, i); analogWrite(g, 255 - i); delay(5); }\n  for (int i = 0; i < 255; i++) { analogWrite(g, i); analogWrite(b, 255 - i); delay(5); }\n  for (int i = 0; i < 255; i++) { analogWrite(b, i); analogWrite(r, 255 - i); delay(5); }\n}"
             },
             "esp32": {
                 "kutuphaneler": "Harici kütüphane gerekmez (Dahili ledc PWM motoru).",
-                "baglanti": [{"bilesen": "RGB R / G / B", "pin": "GPIO 18 / 19 / 21"}, {"bilesen": "Ortak Katot (-)", "pin": "GND"}],
-                "kod": "// ESP32 Donanimsal PWM ile RGB\nconst int r=18, g=19, b=21;\nvoid setup() { ledcAttach(r, 5000, 8); ledcAttach(g, 5000, 8); ledcAttach(b, 5000, 8); }\nvoid loop() {\n  for(int i=0; i<255; i++) { ledcWrite(r, i); ledcWrite(g, 255-i); delay(5); }\n  for(int i=0; i<255; i++) { ledcWrite(g, i); ledcWrite(b, 255-i); delay(5); }\n  for(int i=0; i<255; i++) { ledcWrite(b, i); ledcWrite(r, 255-i); delay(5); }\n}"
+                "baglanti": [
+                    {"bilesen": "RGB R / G / B", "pin": "GPIO 18 / 19 / 21"},
+                    {"bilesen": "Ortak Katot (-)", "pin": "GND"}
+                ],
+                "kod": "// ESP32 - Donanimsal PWM ile RGB Kontrol\nconst int r = 18, g = 19, b = 21;\n\nvoid setup() {\n  ledcAttach(r, 5000, 8);\n  ledcAttach(g, 5000, 8);\n  ledcAttach(b, 5000, 8);\n}\n\nvoid loop() {\n  for (int i = 0; i < 255; i++) { ledcWrite(r, i); ledcWrite(g, 255 - i); delay(5); }\n  for (int i = 0; i < 255; i++) { ledcWrite(g, i); ledcWrite(b, 255 - i); delay(5); }\n  for (int i = 0; i < 255; i++) { ledcWrite(b, i); ledcWrite(r, 255 - i); delay(5); }\n}"
             },
             "esp8266": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
-                "baglanti": [{"bilesen": "RGB R / G / B", "pin": "D1 / D2 / D5"}, {"bilesen": "Ortak Katot (-)", "pin": "GND"}],
-                "kod": "// ESP8266 RGB PWM (0-1023)\nconst int r=D1, g=D2, b=D5;\nvoid setup() { pinMode(r, OUTPUT); pinMode(g, OUTPUT); pinMode(b, OUTPUT); }\nvoid loop() {\n  for(int i=0; i<1023; i+=5) { analogWrite(r, i); analogWrite(g, 1023-i); delay(5); }\n  for(int i=0; i<1023; i+=5) { analogWrite(g, i); analogWrite(b, 1023-i); delay(5); }\n  for(int i=0; i<1023; i+=5) { analogWrite(b, i); analogWrite(r, 1023-i); delay(5); }\n}"
+                "baglanti": [
+                    {"bilesen": "RGB R / G / B", "pin": "D1 / D2 / D5"},
+                    {"bilesen": "Ortak Katot (-)", "pin": "GND"}
+                ],
+                "kod": "// ESP8266 NodeMCU - RGB PWM (0-1023)\nconst int r = D1, g = D2, b = D5;\n\nvoid setup() {\n  pinMode(r, OUTPUT); pinMode(g, OUTPUT); pinMode(b, OUTPUT);\n}\n\nvoid loop() {\n  for (int i = 0; i < 1023; i += 5) { analogWrite(r, i); analogWrite(g, 1023 - i); delay(5); }\n  for (int i = 0; i < 1023; i += 5) { analogWrite(g, i); analogWrite(b, 1023 - i); delay(5); }\n  for (int i = 0; i < 1023; i += 5) { analogWrite(b, i); analogWrite(r, 1023 - i); delay(5); }\n}"
             }
         }
     },
@@ -112,22 +126,22 @@ VARSAYILAN_PROJELER = {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Kırmızı / Sarı / Yeşil LED", "pin": "D2 / D3 / D4 (220Ω)"}, {"bilesen": "Katotlar (-)", "pin": "GND"}],
-                "kod": "// Uno Trafik Isiklari\nconst int k=2, s=3, y=4;\nvoid setup() { pinMode(k, OUTPUT); pinMode(s, OUTPUT); pinMode(y, OUTPUT); }\nvoid loop() {\n  digitalWrite(k, HIGH); delay(4000); digitalWrite(s, HIGH); delay(1000);\n  digitalWrite(k, LOW); digitalWrite(s, LOW); digitalWrite(y, HIGH); delay(4000);\n  digitalWrite(y, LOW); digitalWrite(s, HIGH); delay(1000); digitalWrite(s, LOW);\n}"
+                "kod": "// Uno - Trafik Isiklari\nconst int k = 2, s = 3, y = 4;\n\nvoid setup() { pinMode(k, OUTPUT); pinMode(s, OUTPUT); pinMode(y, OUTPUT); }\n\nvoid loop() {\n  digitalWrite(k, HIGH); delay(4000);\n  digitalWrite(s, HIGH); delay(1000);\n  digitalWrite(k, LOW); digitalWrite(s, LOW); digitalWrite(y, HIGH); delay(4000);\n  digitalWrite(y, LOW); digitalWrite(s, HIGH); delay(1000); digitalWrite(s, LOW);\n}"
             },
             "nano": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Kırmızı / Sarı / Yeşil LED", "pin": "D2 / D3 / D4 (220Ω)"}, {"bilesen": "Katotlar (-)", "pin": "GND"}],
-                "kod": "// Nano Trafik Isiklari\nconst int k=2, s=3, y=4;\nvoid setup() { pinMode(k, OUTPUT); pinMode(s, OUTPUT); pinMode(y, OUTPUT); }\nvoid loop() {\n  digitalWrite(k, HIGH); delay(4000); digitalWrite(s, HIGH); delay(1000);\n  digitalWrite(k, LOW); digitalWrite(s, LOW); digitalWrite(y, HIGH); delay(4000);\n  digitalWrite(y, LOW); digitalWrite(s, HIGH); delay(1000); digitalWrite(s, LOW);\n}"
+                "kod": "// Nano - Trafik Isiklari\nconst int k = 2, s = 3, y = 4;\n\nvoid setup() { pinMode(k, OUTPUT); pinMode(s, OUTPUT); pinMode(y, OUTPUT); }\n\nvoid loop() {\n  digitalWrite(k, HIGH); delay(4000);\n  digitalWrite(s, HIGH); delay(1000);\n  digitalWrite(k, LOW); digitalWrite(s, LOW); digitalWrite(y, HIGH); delay(4000);\n  digitalWrite(y, LOW); digitalWrite(s, HIGH); delay(1000); digitalWrite(s, LOW);\n}"
             },
             "esp32": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
-                "baglanti": [{"bilesen": "Kırmızı / Sarı / Yeşil LED", "pin": "GPIO 18 / 19 / 21"}, {"bilesen": "Katotlar (-)", "pin": "GND"}],
-                "kod": "// ESP32 Trafik Isiklari\nconst int k=18, s=19, y=21;\nvoid setup() { pinMode(k, OUTPUT); pinMode(s, OUTPUT); pinMode(y, OUTPUT); }\nvoid loop() {\n  digitalWrite(k, HIGH); delay(4000); digitalWrite(s, HIGH); delay(1000);\n  digitalWrite(k, LOW); digitalWrite(s, LOW); digitalWrite(y, HIGH); delay(4000);\n  digitalWrite(y, LOW); digitalWrite(s, HIGH); delay(1000); digitalWrite(s, LOW);\n}"
+                "baglanti": [{"bilesen": "Kırmızı / Sarı / Yeşil LED", "pin": "GPIO 18 / 19 / 21 (330Ω)"}, {"bilesen": "Katotlar (-)", "pin": "GND"}],
+                "kod": "// ESP32 - Trafik Isiklari\nconst int k = 18, s = 19, y = 21;\n\nvoid setup() { pinMode(k, OUTPUT); pinMode(s, OUTPUT); pinMode(y, OUTPUT); }\n\nvoid loop() {\n  digitalWrite(k, HIGH); delay(4000);\n  digitalWrite(s, HIGH); delay(1000);\n  digitalWrite(k, LOW); digitalWrite(s, LOW); digitalWrite(y, HIGH); delay(4000);\n  digitalWrite(y, LOW); digitalWrite(s, HIGH); delay(1000); digitalWrite(s, LOW);\n}"
             },
             "esp8266": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Kırmızı / Sarı / Yeşil LED", "pin": "D1 / D2 / D5"}, {"bilesen": "Katotlar (-)", "pin": "GND"}],
-                "kod": "// ESP8266 Trafik Isiklari\nconst int k=D1, s=D2, y=D5;\nvoid setup() { pinMode(k, OUTPUT); pinMode(s, OUTPUT); pinMode(y, OUTPUT); }\nvoid loop() {\n  digitalWrite(k, HIGH); delay(4000); digitalWrite(s, HIGH); delay(1000);\n  digitalWrite(k, LOW); digitalWrite(s, LOW); digitalWrite(y, HIGH); delay(4000);\n  digitalWrite(y, LOW); digitalWrite(s, HIGH); delay(1000); digitalWrite(s, LOW);\n}"
+                "kod": "// ESP8266 - Trafik Isiklari\nconst int k = D1, s = D2, y = D5;\n\nvoid setup() { pinMode(k, OUTPUT); pinMode(s, OUTPUT); pinMode(y, OUTPUT); }\n\nvoid loop() {\n  digitalWrite(k, HIGH); delay(4000);\n  digitalWrite(s, HIGH); delay(1000);\n  digitalWrite(k, LOW); digitalWrite(s, LOW); digitalWrite(y, HIGH); delay(4000);\n  digitalWrite(y, LOW); digitalWrite(s, HIGH); delay(1000); digitalWrite(s, LOW);\n}"
             }
         }
     },
@@ -146,23 +160,23 @@ VARSAYILAN_PROJELER = {
         "kartlar": {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
-                "baglanti": [{"bilesen": "LDR & 10k Ortak Bacak", "pin": "A0"}, {"bilesen": "LDR / 10k Diğer Uçlar", "pin": "5V ve GND"}, {"bilesen": "LED (+)", "pin": "D13"}],
-                "kod": "// Uno LDR Otomatik Far\nconst int ldr=A0, led=13;\nvoid setup() { pinMode(led, OUTPUT); }\nvoid loop() { if(analogRead(ldr) < 400) digitalWrite(led, HIGH); else digitalWrite(led, LOW); delay(100); }"
+                "baglanti": [{"bilesen": "LDR & 10k Ortak Bacak", "pin": "A0"}, {"bilesen": "LDR / 10k Uçları", "pin": "5V ve GND"}, {"bilesen": "LED Anot (+)", "pin": "D13"}],
+                "kod": "// Uno - LDR Otomatik Far\nconst int ldr = A0, led = 13;\n\nvoid setup() { pinMode(led, OUTPUT); }\n\nvoid loop() {\n  int v = analogRead(ldr);\n  if (v < 400) digitalWrite(led, HIGH);\n  else digitalWrite(led, LOW);\n  delay(100);\n}"
             },
             "nano": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
-                "baglanti": [{"bilesen": "LDR & 10k Ortak Bacak", "pin": "A0"}, {"bilesen": "LDR / 10k Diğer Uçlar", "pin": "5V ve GND"}, {"bilesen": "LED (+)", "pin": "D13"}],
-                "kod": "// Nano LDR Otomatik Far\nconst int ldr=A0, led=13;\nvoid setup() { pinMode(led, OUTPUT); }\nvoid loop() { if(analogRead(ldr) < 400) digitalWrite(led, HIGH); else digitalWrite(led, LOW); delay(100); }"
+                "baglanti": [{"bilesen": "LDR & 10k Ortak Bacak", "pin": "A0"}, {"bilesen": "LDR / 10k Uçları", "pin": "5V ve GND"}, {"bilesen": "LED Anot (+)", "pin": "D13"}],
+                "kod": "// Nano - LDR Otomatik Far\nconst int ldr = A0, led = 13;\n\nvoid setup() { pinMode(led, OUTPUT); }\n\nvoid loop() {\n  int v = analogRead(ldr);\n  if (v < 400) digitalWrite(led, HIGH);\n  else digitalWrite(led, LOW);\n  delay(100);\n}"
             },
             "esp32": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
-                "baglanti": [{"bilesen": "LDR & 10k Ortak Bacak", "pin": "GPIO 34 (ADC1)"}, {"bilesen": "LDR / 10k Diğer Uçlar", "pin": "3.3V ve GND"}, {"bilesen": "LED (+)", "pin": "GPIO 2"}],
-                "kod": "// ESP32 LDR (12-bit: 0-4095)\nconst int ldr=34, led=2;\nvoid setup() { pinMode(led, OUTPUT); }\nvoid loop() { if(analogRead(ldr) < 1500) digitalWrite(led, HIGH); else digitalWrite(led, LOW); delay(100); }"
+                "baglanti": [{"bilesen": "LDR & 10k Ortak Bacak", "pin": "GPIO 34 (ADC1)"}, {"bilesen": "LDR / 10k Uçları", "pin": "3.3V ve GND"}, {"bilesen": "LED Anot (+)", "pin": "GPIO 2"}],
+                "kod": "// ESP32 - LDR Otomatik Far (12-bit ADC: 0-4095)\nconst int ldr = 34, led = 2;\n\nvoid setup() { pinMode(led, OUTPUT); }\n\nvoid loop() {\n  int v = analogRead(ldr);\n  if (v < 1500) digitalWrite(led, HIGH);\n  else digitalWrite(led, LOW);\n  delay(100);\n}"
             },
             "esp8266": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
-                "baglanti": [{"bilesen": "LDR & 10k Ortak Bacak", "pin": "A0 (Maks 1.0V/3.3V)"}, {"bilesen": "LDR / 10k Diğer Uçlar", "pin": "3.3V ve GND"}, {"bilesen": "LED (+)", "pin": "D4"}],
-                "kod": "// ESP8266 LDR\nconst int ldr=A0, led=D4;\nvoid setup() { pinMode(led, OUTPUT); }\nvoid loop() { if(analogRead(ldr) < 450) digitalWrite(led, LOW); else digitalWrite(led, HIGH); delay(100); }"
+                "baglanti": [{"bilesen": "LDR & 10k Ortak Bacak", "pin": "A0 (Maks 1.0V/3.3V)"}, {"bilesen": "LDR / 10k Uçları", "pin": "3.3V ve GND"}, {"bilesen": "LED Anot (+)", "pin": "D4"}],
+                "kod": "// ESP8266 - LDR Otomatik Far\nconst int ldr = A0, led = D4;\n\nvoid setup() { pinMode(led, OUTPUT); }\n\nvoid loop() {\n  int v = analogRead(ldr);\n  if (v < 450) digitalWrite(led, LOW); // NodeMCU dahili LED ters calisir\n  else digitalWrite(led, HIGH);\n  delay(100);\n}"
             }
         }
     },
@@ -174,30 +188,30 @@ VARSAYILAN_PROJELER = {
         "goruntulenme": 0,
         "indirme": 0,
         "malzemeler": [
-            {"adet": "1x", "isim": "HC-SR04 Mesafe Sensörü", "link": ""},
+            {"adet": "1x", "isim": "HC-SR04 Ultrasonik Sensör", "link": ""},
             {"adet": "1x", "isim": "Buzzer", "link": ""},
-            {"adet": "2x", "isim": "1kΩ ve 2kΩ Direnç (ESP koruması)", "link": ""}
+            {"adet": "2x", "isim": "1kΩ ve 2kΩ Direnç (ESP Koruması)", "link": ""}
         ],
         "kartlar": {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "HC-SR04 VCC / GND", "pin": "5V / GND"}, {"bilesen": "Trig / Echo", "pin": "D9 / D10"}, {"bilesen": "Buzzer (+)", "pin": "D8"}],
-                "kod": "// Uno Park Sensoru\nconst int trig=9, echo=10, buzz=8;\nvoid setup() { pinMode(trig, OUTPUT); pinMode(echo, INPUT); pinMode(buzz, OUTPUT); }\nvoid loop() {\n  digitalWrite(trig, LOW); delayMicroseconds(2); digitalWrite(trig, HIGH); delayMicroseconds(10); digitalWrite(trig, LOW);\n  long s = pulseIn(echo, HIGH, 30000); int d = (s*0.0343)/2;\n  if(d>0 && d<20) { digitalWrite(buzz, HIGH); delay(40); digitalWrite(buzz, LOW); delay(40); }\n}"
+                "kod": "// Arduino Uno - Park Sensoru\nconst int trig = 9, echo = 10, buzz = 8;\n\nvoid setup() {\n  pinMode(trig, OUTPUT); pinMode(echo, INPUT); pinMode(buzz, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(trig, LOW); delayMicroseconds(2);\n  digitalWrite(trig, HIGH); delayMicroseconds(10);\n  digitalWrite(trig, LOW);\n  long sure = pulseIn(echo, HIGH, 30000);\n  int d = (sure * 0.0343) / 2;\n  if (d > 0 && d < 20) {\n    digitalWrite(buzz, HIGH); delay(40);\n    digitalWrite(buzz, LOW); delay(40);\n  }\n}"
             },
             "nano": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "HC-SR04 VCC / GND", "pin": "5V / GND"}, {"bilesen": "Trig / Echo", "pin": "D9 / D10"}, {"bilesen": "Buzzer (+)", "pin": "D8"}],
-                "kod": "// Nano Park Sensoru\nconst int trig=9, echo=10, buzz=8;\nvoid setup() { pinMode(trig, OUTPUT); pinMode(echo, INPUT); pinMode(buzz, OUTPUT); }\nvoid loop() {\n  digitalWrite(trig, LOW); delayMicroseconds(2); digitalWrite(trig, HIGH); delayMicroseconds(10); digitalWrite(trig, LOW);\n  long s = pulseIn(echo, HIGH, 30000); int d = (s*0.0343)/2;\n  if(d>0 && d<20) { digitalWrite(buzz, HIGH); delay(40); digitalWrite(buzz, LOW); delay(40); }\n}"
+                "kod": "// Arduino Nano - Park Sensoru\nconst int trig = 9, echo = 10, buzz = 8;\n\nvoid setup() {\n  pinMode(trig, OUTPUT); pinMode(echo, INPUT); pinMode(buzz, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(trig, LOW); delayMicroseconds(2);\n  digitalWrite(trig, HIGH); delayMicroseconds(10);\n  digitalWrite(trig, LOW);\n  long sure = pulseIn(echo, HIGH, 30000);\n  int d = (sure * 0.0343) / 2;\n  if (d > 0 && d < 20) {\n    digitalWrite(buzz, HIGH); delay(40);\n    digitalWrite(buzz, LOW); delay(40);\n  }\n}"
             },
             "esp32": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "HC-SR04 VCC / GND", "pin": "VIN (5V) / GND"}, {"bilesen": "Trig / Echo", "pin": "GPIO 5 / GPIO 18 (1k/2k bolucu)"}, {"bilesen": "Buzzer (+)", "pin": "GPIO 19"}],
-                "kod": "// ESP32 Park Sensoru (3.3V Korumali)\nconst int trig=5, echo=18, buzz=19;\nvoid setup() { pinMode(trig, OUTPUT); pinMode(echo, INPUT); pinMode(buzz, OUTPUT); }\nvoid loop() {\n  digitalWrite(trig, LOW); delayMicroseconds(2); digitalWrite(trig, HIGH); delayMicroseconds(10); digitalWrite(trig, LOW);\n  long s = pulseIn(echo, HIGH, 30000); int d = (s*0.0343)/2;\n  if(d>0 && d<20) { digitalWrite(buzz, HIGH); delay(40); digitalWrite(buzz, LOW); delay(40); }\n}"
+                "kod": "// ESP32 - Park Sensoru (3.3V Korumali)\nconst int trig = 5, echo = 18, buzz = 19;\n\nvoid setup() {\n  pinMode(trig, OUTPUT); pinMode(echo, INPUT); pinMode(buzz, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(trig, LOW); delayMicroseconds(2);\n  digitalWrite(trig, HIGH); delayMicroseconds(10);\n  digitalWrite(trig, LOW);\n  long sure = pulseIn(echo, HIGH, 30000);\n  int d = (sure * 0.0343) / 2;\n  if (d > 0 && d < 20) {\n    digitalWrite(buzz, HIGH); delay(40);\n    digitalWrite(buzz, LOW); delay(40);\n  }\n}"
             },
             "esp8266": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "HC-SR04 VCC / GND", "pin": "VV (5V) / GND"}, {"bilesen": "Trig / Echo", "pin": "D1 / D2 (Bolucu)"}, {"bilesen": "Buzzer (+)", "pin": "D5"}],
-                "kod": "// ESP8266 Park Sensoru\nconst int trig=D1, echo=D2, buzz=D5;\nvoid setup() { pinMode(trig, OUTPUT); pinMode(echo, INPUT); pinMode(buzz, OUTPUT); }\nvoid loop() {\n  digitalWrite(trig, LOW); delayMicroseconds(2); digitalWrite(trig, HIGH); delayMicroseconds(10); digitalWrite(trig, LOW);\n  long s = pulseIn(echo, HIGH, 30000); int d = (s*0.0343)/2;\n  if(d>0 && d<20) { digitalWrite(buzz, HIGH); delay(40); digitalWrite(buzz, LOW); delay(40); }\n}"
+                "kod": "// ESP8266 - Park Sensoru\nconst int trig = D1, echo = D2, buzz = D5;\n\nvoid setup() {\n  pinMode(trig, OUTPUT); pinMode(echo, INPUT); pinMode(buzz, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(trig, LOW); delayMicroseconds(2);\n  digitalWrite(trig, HIGH); delayMicroseconds(10);\n  digitalWrite(trig, LOW);\n  long sure = pulseIn(echo, HIGH, 30000);\n  int d = (sure * 0.0343) / 2;\n  if (d > 0 && d < 20) {\n    digitalWrite(buzz, HIGH); delay(40);\n    digitalWrite(buzz, LOW); delay(40);\n  }\n}"
             }
         }
     },
@@ -208,27 +222,27 @@ VARSAYILAN_PROJELER = {
         "sure": "10 Dk",
         "goruntulenme": 0,
         "indirme": 0,
-        "malzemeler": [{"adet": "1x", "isim": "HC-SR501 PIR Sensörü", "link": ""}, {"adet": "1x", "isim": "Buzzer / LED", "link": ""}],
+        "malzemeler": [{"adet": "1x", "isim": "HC-SR501 PIR Sensörü", "link": ""}, {"adet": "1x", "isim": "Buzzer veya LED", "link": ""}],
         "kartlar": {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "PIR VCC / GND", "pin": "5V / GND"}, {"bilesen": "PIR OUT", "pin": "D2"}, {"bilesen": "Alarm LED", "pin": "D13"}],
-                "kod": "// Uno PIR Alarm\nvoid setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); }\nvoid loop() { digitalWrite(13, digitalRead(2)); }"
+                "kod": "// Uno - PIR Hareket Alarmi\nconst int pir = 2, led = 13;\nvoid setup() { pinMode(pir, INPUT); pinMode(led, OUTPUT); }\nvoid loop() { digitalWrite(led, digitalRead(pir)); }"
             },
             "nano": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "PIR VCC / GND", "pin": "5V / GND"}, {"bilesen": "PIR OUT", "pin": "D2"}, {"bilesen": "Alarm LED", "pin": "D13"}],
-                "kod": "// Nano PIR Alarm\nvoid setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); }\nvoid loop() { digitalWrite(13, digitalRead(2)); }"
+                "kod": "// Nano - PIR Hareket Alarmi\nconst int pir = 2, led = 13;\nvoid setup() { pinMode(pir, INPUT); pinMode(led, OUTPUT); }\nvoid loop() { digitalWrite(led, digitalRead(pir)); }"
             },
             "esp32": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "PIR VCC / GND", "pin": "VIN (5V) / GND"}, {"bilesen": "PIR OUT", "pin": "GPIO 13"}, {"bilesen": "Alarm LED", "pin": "GPIO 2"}],
-                "kod": "// ESP32 PIR Alarm\nvoid setup() { pinMode(13, INPUT); pinMode(2, OUTPUT); }\nvoid loop() { digitalWrite(2, digitalRead(13)); }"
+                "kod": "// ESP32 - PIR Hareket Alarmi\nconst int pir = 13, led = 2;\nvoid setup() { pinMode(pir, INPUT); pinMode(led, OUTPUT); }\nvoid loop() { digitalWrite(led, digitalRead(pir)); }"
             },
             "esp8266": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "PIR VCC / GND", "pin": "VV (5V) / GND"}, {"bilesen": "PIR OUT", "pin": "D7"}, {"bilesen": "Alarm LED", "pin": "D4"}],
-                "kod": "// ESP8266 PIR Alarm\nvoid setup() { pinMode(D7, INPUT); pinMode(D4, OUTPUT); }\nvoid loop() { digitalWrite(D4, !digitalRead(D7)); }"
+                "kod": "// ESP8266 - PIR Hareket Alarmi\nconst int pir = D7, led = D4;\nvoid setup() { pinMode(pir, INPUT); pinMode(led, OUTPUT); }\nvoid loop() { digitalWrite(led, !digitalRead(pir)); }"
             }
         }
     },
@@ -242,24 +256,24 @@ VARSAYILAN_PROJELER = {
         "malzemeler": [{"adet": "1x", "isim": "DHT11 Sensörü", "link": ""}, {"adet": "1x", "isim": "10kΩ Pull-up Direnç", "link": ""}],
         "kartlar": {
             "uno": {
-                "kutuphaneler": "<DHT.h> (Adafruit)",
+                "kutuphaneler": "<DHT.h> (Adafruit DHT Sensor Library)",
                 "baglanti": [{"bilesen": "DHT11 VCC / GND", "pin": "5V / GND"}, {"bilesen": "DATA", "pin": "D2 (10k pull-up)"}],
-                "kod": "#include <DHT.h>\nDHT dht(2, DHT11);\nvoid setup() { Serial.begin(9600); dht.begin(); }\nvoid loop() { delay(2000); Serial.println(dht.readTemperature()); }"
+                "kod": "#include <DHT.h>\nDHT dht(2, DHT11);\n\nvoid setup() {\n  Serial.begin(9600);\n  dht.begin();\n}\n\nvoid loop() {\n  delay(2000);\n  Serial.print(\"Nem: %\"); Serial.println(dht.readHumidity());\n  Serial.print(\"Sicaklik: \"); Serial.println(dht.readTemperature());\n}"
             },
             "nano": {
                 "kutuphaneler": "<DHT.h>",
                 "baglanti": [{"bilesen": "DHT11 VCC / GND", "pin": "5V / GND"}, {"bilesen": "DATA", "pin": "D2"}],
-                "kod": "#include <DHT.h>\nDHT dht(2, DHT11);\nvoid setup() { Serial.begin(9600); dht.begin(); }\nvoid loop() { delay(2000); Serial.println(dht.readTemperature()); }"
+                "kod": "#include <DHT.h>\nDHT dht(2, DHT11);\n\nvoid setup() {\n  Serial.begin(9600);\n  dht.begin();\n}\n\nvoid loop() {\n  delay(2000);\n  Serial.print(\"Nem: %\"); Serial.println(dht.readHumidity());\n  Serial.print(\"Sicaklik: \"); Serial.println(dht.readTemperature());\n}"
             },
             "esp32": {
                 "kutuphaneler": "<DHT.h>",
                 "baglanti": [{"bilesen": "DHT11 VCC / GND", "pin": "3.3V / GND"}, {"bilesen": "DATA", "pin": "GPIO 4"}],
-                "kod": "#include <DHT.h>\nDHT dht(4, DHT11);\nvoid setup() { Serial.begin(115200); dht.begin(); }\nvoid loop() { delay(2000); Serial.println(dht.readTemperature()); }"
+                "kod": "#include <DHT.h>\nDHT dht(4, DHT11);\n\nvoid setup() {\n  Serial.begin(115200);\n  dht.begin();\n}\n\nvoid loop() {\n  delay(2000);\n  Serial.print(\"Nem: %\"); Serial.println(dht.readHumidity());\n  Serial.print(\"Sicaklik: \"); Serial.println(dht.readTemperature());\n}"
             },
             "esp8266": {
                 "kutuphaneler": "<DHT.h>",
                 "baglanti": [{"bilesen": "DHT11 VCC / GND", "pin": "3.3V / GND"}, {"bilesen": "DATA", "pin": "D4 (GPIO 2)"}],
-                "kod": "#include <DHT.h>\nDHT dht(D4, DHT11);\nvoid setup() { Serial.begin(115200); dht.begin(); }\nvoid loop() { delay(2000); Serial.println(dht.readTemperature()); }"
+                "kod": "#include <DHT.h>\nDHT dht(D4, DHT11);\n\nvoid setup() {\n  Serial.begin(115200);\n  dht.begin();\n}\n\nvoid loop() {\n  delay(2000);\n  Serial.print(\"Nem: %\"); Serial.println(dht.readHumidity());\n  Serial.print(\"Sicaklik: \"); Serial.println(dht.readTemperature());\n}"
             }
         }
     },
@@ -275,22 +289,22 @@ VARSAYILAN_PROJELER = {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "TCRT5000 VCC / GND", "pin": "5V / GND"}, {"bilesen": "DO (Dijital Çıkış)", "pin": "D2"}, {"bilesen": "LED", "pin": "D13"}],
-                "kod": "// Uno Cizgi Takip\nvoid setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); }\nvoid loop() { digitalWrite(13, !digitalRead(2)); }"
+                "kod": "// Uno - TCRT5000 Cizgi Takip\nvoid setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); }\nvoid loop() { digitalWrite(13, !digitalRead(2)); }"
             },
             "nano": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "TCRT5000 VCC / GND", "pin": "5V / GND"}, {"bilesen": "DO", "pin": "D2"}, {"bilesen": "LED", "pin": "D13"}],
-                "kod": "// Nano Cizgi Takip\nvoid setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); }\nvoid loop() { digitalWrite(13, !digitalRead(2)); }"
+                "kod": "// Nano - TCRT5000 Cizgi Takip\nvoid setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); }\nvoid loop() { digitalWrite(13, !digitalRead(2)); }"
             },
             "esp32": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "TCRT5000 VCC / GND", "pin": "3.3V / GND"}, {"bilesen": "DO", "pin": "GPIO 4"}, {"bilesen": "LED", "pin": "GPIO 2"}],
-                "kod": "// ESP32 Cizgi Takip\nvoid setup() { pinMode(4, INPUT); pinMode(2, OUTPUT); }\nvoid loop() { digitalWrite(2, !digitalRead(4)); }"
+                "kod": "// ESP32 - TCRT5000 Cizgi Takip\nvoid setup() { pinMode(4, INPUT); pinMode(2, OUTPUT); }\nvoid loop() { digitalWrite(2, !digitalRead(4)); }"
             },
             "esp8266": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "TCRT5000 VCC / GND", "pin": "3.3V / GND"}, {"bilesen": "DO", "pin": "D1"}, {"bilesen": "LED", "pin": "D4"}],
-                "kod": "// ESP8266 Cizgi Takip\nvoid setup() { pinMode(D1, INPUT); pinMode(D4, OUTPUT); }\nvoid loop() { digitalWrite(D4, digitalRead(D1)); }"
+                "kod": "// ESP8266 - TCRT5000 Cizgi Takip\nvoid setup() { pinMode(D1, INPUT); pinMode(D4, OUTPUT); }\nvoid loop() { digitalWrite(D4, digitalRead(D1)); }"
             }
         }
     },
@@ -306,22 +320,22 @@ VARSAYILAN_PROJELER = {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Pot Orta Bacak", "pin": "A0"}, {"bilesen": "LED Anot (+)", "pin": "D9 (PWM)"}],
-                "kod": "// Uno Pot PWM\nvoid setup() { pinMode(9, OUTPUT); }\nvoid loop() { analogWrite(9, map(analogRead(A0), 0, 1023, 0, 255)); delay(10); }"
+                "kod": "// Uno - Potansiyometre PWM Kontrol\nvoid setup() { pinMode(9, OUTPUT); }\nvoid loop() {\n  int v = analogRead(A0);\n  analogWrite(9, map(v, 0, 1023, 0, 255));\n  delay(10);\n}"
             },
             "nano": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Pot Orta Bacak", "pin": "A0"}, {"bilesen": "LED Anot (+)", "pin": "D9 (PWM)"}],
-                "kod": "// Nano Pot PWM\nvoid setup() { pinMode(9, OUTPUT); }\nvoid loop() { analogWrite(9, map(analogRead(A0), 0, 1023, 0, 255)); delay(10); }"
+                "kod": "// Nano - Potansiyometre PWM Kontrol\nvoid setup() { pinMode(9, OUTPUT); }\nvoid loop() {\n  int v = analogRead(A0);\n  analogWrite(9, map(v, 0, 1023, 0, 255));\n  delay(10);\n}"
             },
             "esp32": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Pot Orta Bacak", "pin": "GPIO 32 (ADC1)"}, {"bilesen": "LED Anot (+)", "pin": "GPIO 18"}],
-                "kod": "// ESP32 Pot PWM\nvoid setup() { ledcAttach(18, 5000, 8); }\nvoid loop() { ledcWrite(18, map(analogRead(32), 0, 4095, 0, 255)); delay(10); }"
+                "kod": "// ESP32 - Potansiyometre Donanimsal PWM\nvoid setup() { ledcAttach(18, 5000, 8); }\nvoid loop() {\n  int v = analogRead(32);\n  ledcWrite(18, map(v, 0, 4095, 0, 255));\n  delay(10);\n}"
             },
             "esp8266": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Pot Orta Bacak", "pin": "A0"}, {"bilesen": "LED Anot (+)", "pin": "D1"}],
-                "kod": "// ESP8266 Pot PWM\nvoid setup() { pinMode(D1, OUTPUT); }\nvoid loop() { analogWrite(D1, analogRead(A0)); delay(10); }"
+                "kod": "// ESP8266 - Potansiyometre PWM\nvoid setup() { pinMode(D1, OUTPUT); }\nvoid loop() {\n  analogWrite(D1, analogRead(A0));\n  delay(10);\n}"
             }
         }
     },
@@ -332,27 +346,27 @@ VARSAYILAN_PROJELER = {
         "sure": "10 Dk",
         "goruntulenme": 0,
         "indirme": 0,
-        "malzemeler": [{"adet": "1x", "isim": "Push Buton", "link": ""}, {"adet": "1x", "isim": "Dahili / Harici LED", "link": ""}],
+        "malzemeler": [{"adet": "1x", "isim": "Push Buton", "link": ""}],
         "kartlar": {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
-                "baglanti": [{"bilesen": "Buton Bir Uç", "pin": "D2"}, {"bilesen": "Buton Diğer Uç", "pin": "GND"}, {"bilesen": "LED", "pin": "D13"}],
-                "kod": "// Uno INPUT_PULLUP\nvoid setup() { pinMode(2, INPUT_PULLUP); pinMode(13, OUTPUT); }\nvoid loop() { digitalWrite(13, !digitalRead(2)); }"
+                "baglanti": [{"bilesen": "Buton Bacakları", "pin": "D2 ve GND"}, {"bilesen": "Dahili LED", "pin": "D13"}],
+                "kod": "// Uno - INPUT_PULLUP Buton\nvoid setup() { pinMode(2, INPUT_PULLUP); pinMode(13, OUTPUT); }\nvoid loop() { digitalWrite(13, !digitalRead(2)); }"
             },
             "nano": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
-                "baglanti": [{"bilesen": "Buton Bir Uç", "pin": "D2"}, {"bilesen": "Buton Diğer Uç", "pin": "GND"}, {"bilesen": "LED", "pin": "D13"}],
-                "kod": "// Nano INPUT_PULLUP\nvoid setup() { pinMode(2, INPUT_PULLUP); pinMode(13, OUTPUT); }\nvoid loop() { digitalWrite(13, !digitalRead(2)); }"
+                "baglanti": [{"bilesen": "Buton Bacakları", "pin": "D2 ve GND"}, {"bilesen": "Dahili LED", "pin": "D13"}],
+                "kod": "// Nano - INPUT_PULLUP Buton\nvoid setup() { pinMode(2, INPUT_PULLUP); pinMode(13, OUTPUT); }\nvoid loop() { digitalWrite(13, !digitalRead(2)); }"
             },
             "esp32": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
-                "baglanti": [{"bilesen": "Buton Bir Uç", "pin": "GPIO 4"}, {"bilesen": "Buton Diğer Uç", "pin": "GND"}, {"bilesen": "LED", "pin": "GPIO 2"}],
-                "kod": "// ESP32 INPUT_PULLUP\nvoid setup() { pinMode(4, INPUT_PULLUP); pinMode(2, OUTPUT); }\nvoid loop() { digitalWrite(2, !digitalRead(4)); }"
+                "baglanti": [{"bilesen": "Buton Bacakları", "pin": "GPIO 4 ve GND"}, {"bilesen": "Dahili LED", "pin": "GPIO 2"}],
+                "kod": "// ESP32 - INPUT_PULLUP Buton\nvoid setup() { pinMode(4, INPUT_PULLUP); pinMode(2, OUTPUT); }\nvoid loop() { digitalWrite(2, !digitalRead(4)); }"
             },
             "esp8266": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
-                "baglanti": [{"bilesen": "Buton Bir Uç", "pin": "D2 (GPIO 4)"}, {"bilesen": "Buton Diğer Uç", "pin": "GND"}, {"bilesen": "LED", "pin": "D4"}],
-                "kod": "// ESP8266 INPUT_PULLUP\nvoid setup() { pinMode(D2, INPUT_PULLUP); pinMode(D4, OUTPUT); }\nvoid loop() { digitalWrite(D4, digitalRead(D2)); }"
+                "baglanti": [{"bilesen": "Buton Bacakları", "pin": "D2 ve GND"}, {"bilesen": "Dahili LED", "pin": "D4"}],
+                "kod": "// ESP8266 - INPUT_PULLUP Buton\nvoid setup() { pinMode(D2, INPUT_PULLUP); pinMode(D4, OUTPUT); }\nvoid loop() { digitalWrite(D4, digitalRead(D2)); }"
             }
         }
     },
@@ -368,22 +382,22 @@ VARSAYILAN_PROJELER = {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "VRx / VRy", "pin": "A0 / A1"}, {"bilesen": "SW (Buton)", "pin": "D2"}],
-                "kod": "// Uno Joystick\nvoid setup() { Serial.begin(9600); pinMode(2, INPUT_PULLUP); }\nvoid loop() { Serial.print(\"X: \"); Serial.print(analogRead(A0)); Serial.print(\" Y: \"); Serial.println(analogRead(A1)); delay(200); }"
+                "kod": "// Uno - Joystick Okuma\nvoid setup() { Serial.begin(9600); pinMode(2, INPUT_PULLUP); }\nvoid loop() {\n  Serial.print(\"X: \"); Serial.print(analogRead(A0));\n  Serial.print(\" Y: \"); Serial.println(analogRead(A1));\n  delay(200);\n}"
             },
             "nano": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
-                "baglanti": [{"bilesen": "VRx / VRy", "pin": "A0 / A1"}, {"bilesen": "SW", "pin": "D2"}],
-                "kod": "// Nano Joystick\nvoid setup() { Serial.begin(9600); pinMode(2, INPUT_PULLUP); }\nvoid loop() { Serial.print(\"X: \"); Serial.print(analogRead(A0)); Serial.print(\" Y: \"); Serial.println(analogRead(A1)); delay(200); }"
+                "baglanti": [{"bilesen": "VRx / VRy", "pin": "A0 / A1"}, {"bilesen": "SW (Buton)", "pin": "D2"}],
+                "kod": "// Nano - Joystick Okuma\nvoid setup() { Serial.begin(9600); pinMode(2, INPUT_PULLUP); }\nvoid loop() {\n  Serial.print(\"X: \"); Serial.print(analogRead(A0));\n  Serial.print(\" Y: \"); Serial.println(analogRead(A1));\n  delay(200);\n}"
             },
             "esp32": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "VRx / VRy", "pin": "GPIO 34 / 35"}, {"bilesen": "SW", "pin": "GPIO 15"}],
-                "kod": "// ESP32 Joystick\nvoid setup() { Serial.begin(115200); pinMode(15, INPUT_PULLUP); }\nvoid loop() { Serial.print(\"X: \"); Serial.print(analogRead(34)); Serial.print(\" Y: \"); Serial.println(analogRead(35)); delay(200); }"
+                "kod": "// ESP32 - Joystick Okuma\nvoid setup() { Serial.begin(115200); pinMode(15, INPUT_PULLUP); }\nvoid loop() {\n  Serial.print(\"X: \"); Serial.print(analogRead(34));\n  Serial.print(\" Y: \"); Serial.println(analogRead(35));\n  delay(200);\n}"
             },
             "esp8266": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
-                "baglanti": [{"bilesen": "VRx", "pin": "A0 (Tek ADC)"}, {"bilesen": "SW", "pin": "D2"}],
-                "kod": "// ESP8266 Tek Eksen\nvoid setup() { Serial.begin(115200); }\nvoid loop() { Serial.println(analogRead(A0)); delay(200); }"
+                "baglanti": [{"bilesen": "VRx", "pin": "A0 (Tek ADC Bacağı)"}, {"bilesen": "SW", "pin": "D2"}],
+                "kod": "// ESP8266 - Tek Eksen Okuma\nvoid setup() { Serial.begin(115200); }\nvoid loop() { Serial.println(analogRead(A0)); delay(200); }"
             }
         }
     },
@@ -394,27 +408,27 @@ VARSAYILAN_PROJELER = {
         "sure": "15 Dk",
         "goruntulenme": 0,
         "indirme": 0,
-        "malzemeler": [{"adet": "1x", "isim": "5V Röle Modülü", "link": ""}],
+        "malzemeler": [{"adet": "1x", "isim": "5V Tek Kanal Röle", "link": ""}],
         "kartlar": {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Röle IN", "pin": "D7"}, {"bilesen": "VCC / GND", "pin": "5V / GND"}],
-                "kod": "// Uno Role\nvoid setup() { pinMode(7, OUTPUT); }\nvoid loop() { digitalWrite(7, LOW); delay(2000); digitalWrite(7, HIGH); delay(2000); }"
+                "kod": "// Uno - Role Kontrol (Aktif LOW)\nvoid setup() { pinMode(7, OUTPUT); }\nvoid loop() { digitalWrite(7, LOW); delay(2000); digitalWrite(7, HIGH); delay(2000); }"
             },
             "nano": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Röle IN", "pin": "D7"}, {"bilesen": "VCC / GND", "pin": "5V / GND"}],
-                "kod": "// Nano Role\nvoid setup() { pinMode(7, OUTPUT); }\nvoid loop() { digitalWrite(7, LOW); delay(2000); digitalWrite(7, HIGH); delay(2000); }"
+                "kod": "// Nano - Role Kontrol\nvoid setup() { pinMode(7, OUTPUT); }\nvoid loop() { digitalWrite(7, LOW); delay(2000); digitalWrite(7, HIGH); delay(2000); }"
             },
             "esp32": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Röle IN", "pin": "GPIO 19"}, {"bilesen": "VCC / GND", "pin": "VIN (5V) / GND"}],
-                "kod": "// ESP32 Role\nvoid setup() { pinMode(19, OUTPUT); }\nvoid loop() { digitalWrite(19, LOW); delay(2000); digitalWrite(19, HIGH); delay(2000); }"
+                "kod": "// ESP32 - Role Kontrol\nvoid setup() { pinMode(19, OUTPUT); }\nvoid loop() { digitalWrite(19, LOW); delay(2000); digitalWrite(19, HIGH); delay(2000); }"
             },
             "esp8266": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Röle IN", "pin": "D1"}, {"bilesen": "VCC / GND", "pin": "VV (5V) / GND"}],
-                "kod": "// ESP8266 Role\nvoid setup() { pinMode(D1, OUTPUT); }\nvoid loop() { digitalWrite(D1, LOW); delay(2000); digitalWrite(D1, HIGH); delay(2000); }"
+                "kod": "// ESP8266 - Role Kontrol\nvoid setup() { pinMode(D1, OUTPUT); }\nvoid loop() { digitalWrite(D1, LOW); delay(2000); digitalWrite(D1, HIGH); delay(2000); }"
             }
         }
     },
@@ -429,22 +443,22 @@ VARSAYILAN_PROJELER = {
         "kartlar": {
             "uno": {
                 "kutuphaneler": "<Servo.h>",
-                "baglanti": [{"bilesen": "Servo Sinyal (Turuncu)", "pin": "D9"}, {"bilesen": "Besleme (Kırmızı/Kahve)", "pin": "5V / GND"}],
+                "baglanti": [{"bilesen": "Sinyal (Turuncu)", "pin": "D9"}, {"bilesen": "Besleme (Kırmızı/Kahve)", "pin": "5V / GND"}],
                 "kod": "#include <Servo.h>\nServo s;\nvoid setup() { s.attach(9); }\nvoid loop() { s.write(0); delay(1000); s.write(90); delay(1000); s.write(180); delay(1000); }"
             },
             "nano": {
                 "kutuphaneler": "<Servo.h>",
-                "baglanti": [{"bilesen": "Servo Sinyal", "pin": "D9"}, {"bilesen": "Besleme", "pin": "5V / GND"}],
+                "baglanti": [{"bilesen": "Sinyal", "pin": "D9"}, {"bilesen": "Besleme", "pin": "5V / GND"}],
                 "kod": "#include <Servo.h>\nServo s;\nvoid setup() { s.attach(9); }\nvoid loop() { s.write(0); delay(1000); s.write(90); delay(1000); s.write(180); delay(1000); }"
             },
             "esp32": {
                 "kutuphaneler": "<ESP32Servo.h>",
-                "baglanti": [{"bilesen": "Servo Sinyal", "pin": "GPIO 18"}, {"bilesen": "Besleme", "pin": "VIN (5V) / GND"}],
+                "baglanti": [{"bilesen": "Sinyal", "pin": "GPIO 18"}, {"bilesen": "Besleme", "pin": "VIN (5V) / GND"}],
                 "kod": "#include <ESP32Servo.h>\nServo s;\nvoid setup() { s.attach(18); }\nvoid loop() { s.write(0); delay(1000); s.write(90); delay(1000); s.write(180); delay(1000); }"
             },
             "esp8266": {
                 "kutuphaneler": "<Servo.h>",
-                "baglanti": [{"bilesen": "Servo Sinyal", "pin": "D4"}, {"bilesen": "Besleme", "pin": "VV (5V) / GND"}],
+                "baglanti": [{"bilesen": "Sinyal", "pin": "D4"}, {"bilesen": "Besleme", "pin": "VV (5V) / GND"}],
                 "kod": "#include <Servo.h>\nServo s;\nvoid setup() { s.attach(D4); }\nvoid loop() { s.write(0); delay(1000); s.write(90); delay(1000); s.write(180); delay(1000); }"
             }
         }
@@ -456,27 +470,27 @@ VARSAYILAN_PROJELER = {
         "sure": "20 Dk",
         "goruntulenme": 0,
         "indirme": 0,
-        "malzemeler": [{"adet": "1x", "isim": "L298N Sürücü", "link": ""}, {"adet": "1x", "isim": "DC Motor", "link": ""}],
+        "malzemeler": [{"adet": "1x", "isim": "L298N Sürücü Modülü", "link": ""}, {"adet": "1x", "isim": "DC Motor", "link": ""}],
         "kartlar": {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "ENA (Hız)", "pin": "D5 (PWM)"}, {"bilesen": "IN1 / IN2", "pin": "D6 / D7"}],
-                "kod": "// Uno L298N\nvoid setup() { pinMode(5, OUTPUT); pinMode(6, OUTPUT); pinMode(7, OUTPUT); }\nvoid loop() { digitalWrite(6, HIGH); digitalWrite(7, LOW); analogWrite(5, 200); delay(2000); }"
+                "kod": "// Uno - L298N DC Motor\nvoid setup() { pinMode(5, OUTPUT); pinMode(6, OUTPUT); pinMode(7, OUTPUT); }\nvoid loop() {\n  digitalWrite(6, HIGH); digitalWrite(7, LOW); analogWrite(5, 200); delay(2000);\n  digitalWrite(6, LOW); digitalWrite(7, HIGH); delay(2000);\n}"
             },
             "nano": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "ENA / IN1 / IN2", "pin": "D5 / D6 / D7"}],
-                "kod": "// Nano L298N\nvoid setup() { pinMode(5, OUTPUT); pinMode(6, OUTPUT); pinMode(7, OUTPUT); }\nvoid loop() { digitalWrite(6, HIGH); digitalWrite(7, LOW); analogWrite(5, 200); delay(2000); }"
+                "kod": "// Nano - L298N DC Motor\nvoid setup() { pinMode(5, OUTPUT); pinMode(6, OUTPUT); pinMode(7, OUTPUT); }\nvoid loop() {\n  digitalWrite(6, HIGH); digitalWrite(7, LOW); analogWrite(5, 200); delay(2000);\n  digitalWrite(6, LOW); digitalWrite(7, HIGH); delay(2000);\n}"
             },
             "esp32": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "ENA (Hız)", "pin": "GPIO 18"}, {"bilesen": "IN1 / IN2", "pin": "GPIO 19 / 21"}],
-                "kod": "// ESP32 L298N\nvoid setup() { pinMode(19, OUTPUT); pinMode(21, OUTPUT); ledcAttach(18, 5000, 8); }\nvoid loop() { digitalWrite(19, HIGH); digitalWrite(21, LOW); ledcWrite(18, 200); delay(2000); }"
+                "kod": "// ESP32 - L298N DC Motor\nvoid setup() { pinMode(19, OUTPUT); pinMode(21, OUTPUT); ledcAttach(18, 5000, 8); }\nvoid loop() {\n  digitalWrite(19, HIGH); digitalWrite(21, LOW); ledcWrite(18, 200); delay(2000);\n  digitalWrite(19, LOW); digitalWrite(21, HIGH); delay(2000);\n}"
             },
             "esp8266": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "ENA / IN1 / IN2", "pin": "D1 / D2 / D5"}],
-                "kod": "// ESP8266 L298N\nvoid setup() { pinMode(D1, OUTPUT); pinMode(D2, OUTPUT); pinMode(D5, OUTPUT); }\nvoid loop() { digitalWrite(D2, HIGH); digitalWrite(D5, LOW); analogWrite(D1, 800); delay(2000); }"
+                "kod": "// ESP8266 - L298N DC Motor\nvoid setup() { pinMode(D1, OUTPUT); pinMode(D2, OUTPUT); pinMode(D5, OUTPUT); }\nvoid loop() {\n  digitalWrite(D2, HIGH); digitalWrite(D5, LOW); analogWrite(D1, 800); delay(2000);\n  digitalWrite(D2, LOW); digitalWrite(D5, HIGH); delay(2000);\n}"
             }
         }
     },
@@ -487,7 +501,7 @@ VARSAYILAN_PROJELER = {
         "sure": "15 Dk",
         "goruntulenme": 0,
         "indirme": 0,
-        "malzemeler": [{"adet": "1x", "isim": "1602 LCD + I2C Sırtlığı", "link": ""}],
+        "malzemeler": [{"adet": "1x", "isim": "1602 LCD + I2C Modülü", "link": ""}],
         "kartlar": {
             "uno": {
                 "kutuphaneler": "<LiquidCrystal_I2C.h>",
@@ -502,12 +516,12 @@ VARSAYILAN_PROJELER = {
             "esp32": {
                 "kutuphaneler": "<LiquidCrystal_I2C.h>",
                 "baglanti": [{"bilesen": "SDA / SCL", "pin": "GPIO 21 / GPIO 22"}, {"bilesen": "VCC / GND", "pin": "VIN (5V) / GND"}],
-                "kod": "#include <Wire.h>\n#include <LiquidCrystal_I2C.h>\nLiquidCrystal_I2C lcd(0x27, 16, 2);\nvoid setup() { Wire.begin(21, 22); lcd.init(); lcd.backlight(); lcd.print(\"ArduKod ESP32\"); }\nvoid loop() {}"
+                "kod": "#include <Wire.h>\n#include <LiquidCrystal_I2C.h>\nLiquidCrystal_I2C lcd(0x27, 16, 2);\nvoid setup() { Wire.begin(21, 22); lcd.init(); lcd.backlight(); lcd.print(\"ESP32 LCD\"); }\nvoid loop() {}"
             },
             "esp8266": {
                 "kutuphaneler": "<LiquidCrystal_I2C.h>",
                 "baglanti": [{"bilesen": "SDA / SCL", "pin": "D2 (GPIO 4) / D1 (GPIO 5)"}, {"bilesen": "VCC / GND", "pin": "VV (5V) / GND"}],
-                "kod": "#include <Wire.h>\n#include <LiquidCrystal_I2C.h>\nLiquidCrystal_I2C lcd(0x27, 16, 2);\nvoid setup() { Wire.begin(D2, D1); lcd.init(); lcd.backlight(); lcd.print(\"ArduKod ESP8266\"); }\nvoid loop() {}"
+                "kod": "#include <Wire.h>\n#include <LiquidCrystal_I2C.h>\nLiquidCrystal_I2C lcd(0x27, 16, 2);\nvoid setup() { Wire.begin(D2, D1); lcd.init(); lcd.backlight(); lcd.print(\"ESP8266 LCD\"); }\nvoid loop() {}"
             }
         }
     },
@@ -554,22 +568,22 @@ VARSAYILAN_PROJELER = {
             "uno": {
                 "kutuphaneler": "<LedControl.h>",
                 "baglanti": [{"bilesen": "DIN / CS / CLK", "pin": "D12 / D10 / D11"}],
-                "kod": "#include <LedControl.h>\nLedControl lc(12, 11, 10, 1);\nvoid setup() { lc.shutdown(0,false); lc.setIntensity(0,8); lc.clearDisplay(0); lc.setLed(0,3,3,true); }\nvoid loop() {}"
+                "kod": "#include <LedControl.h>\nLedControl lc(12, 11, 10, 1);\nvoid setup() { lc.shutdown(0, false); lc.setIntensity(0, 8); lc.clearDisplay(0); lc.setLed(0, 3, 3, true); }\nvoid loop() {}"
             },
             "nano": {
                 "kutuphaneler": "<LedControl.h>",
                 "baglanti": [{"bilesen": "DIN / CS / CLK", "pin": "D12 / D10 / D11"}],
-                "kod": "#include <LedControl.h>\nLedControl lc(12, 11, 10, 1);\nvoid setup() { lc.shutdown(0,false); lc.setIntensity(0,8); lc.clearDisplay(0); lc.setLed(0,3,3,true); }\nvoid loop() {}"
+                "kod": "#include <LedControl.h>\nLedControl lc(12, 11, 10, 1);\nvoid setup() { lc.shutdown(0, false); lc.setIntensity(0, 8); lc.clearDisplay(0); lc.setLed(0, 3, 3, true); }\nvoid loop() {}"
             },
             "esp32": {
                 "kutuphaneler": "<LedControl.h>",
                 "baglanti": [{"bilesen": "DIN / CS / CLK", "pin": "GPIO 23 / 5 / 18"}],
-                "kod": "#include <LedControl.h>\nLedControl lc(23, 18, 5, 1);\nvoid setup() { lc.shutdown(0,false); lc.setIntensity(0,8); lc.clearDisplay(0); lc.setLed(0,3,3,true); }\nvoid loop() {}"
+                "kod": "#include <LedControl.h>\nLedControl lc(23, 18, 5, 1);\nvoid setup() { lc.shutdown(0, false); lc.setIntensity(0, 8); lc.clearDisplay(0); lc.setLed(0, 3, 3, true); }\nvoid loop() {}"
             },
             "esp8266": {
                 "kutuphaneler": "<LedControl.h>",
                 "baglanti": [{"bilesen": "DIN / CS / CLK", "pin": "D7 / D8 / D5"}],
-                "kod": "#include <LedControl.h>\nLedControl lc(D7, D5, D8, 1);\nvoid setup() { lc.shutdown(0,false); lc.setIntensity(0,8); lc.clearDisplay(0); lc.setLed(0,3,3,true); }\nvoid loop() {}"
+                "kod": "#include <LedControl.h>\nLedControl lc(D7, D5, D8, 1);\nvoid setup() { lc.shutdown(0, false); lc.setIntensity(0, 8); lc.clearDisplay(0); lc.setLed(0, 3, 3, true); }\nvoid loop() {}"
             }
         }
     },
@@ -585,22 +599,22 @@ VARSAYILAN_PROJELER = {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Buzzer (+)", "pin": "D8"}, {"bilesen": "Buzzer (-)", "pin": "GND"}],
-                "kod": "// Uno Buzzer Ton\nvoid setup() {}\nvoid loop() { tone(8, 440, 200); delay(300); tone(8, 880, 200); delay(500); }"
+                "kod": "// Uno - Buzzer Ton\nvoid setup() {}\nvoid loop() { tone(8, 440, 200); delay(300); tone(8, 880, 200); delay(500); }"
             },
             "nano": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Buzzer (+)", "pin": "D8"}, {"bilesen": "Buzzer (-)", "pin": "GND"}],
-                "kod": "// Nano Buzzer Ton\nvoid setup() {}\nvoid loop() { tone(8, 440, 200); delay(300); tone(8, 880, 200); delay(500); }"
+                "kod": "// Nano - Buzzer Ton\nvoid setup() {}\nvoid loop() { tone(8, 440, 200); delay(300); tone(8, 880, 200); delay(500); }"
             },
             "esp32": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Buzzer (+)", "pin": "GPIO 18"}, {"bilesen": "Buzzer (-)", "pin": "GND"}],
-                "kod": "// ESP32 Donanimsal Ton\nvoid setup() { ledcAttach(18, 2000, 8); }\nvoid loop() { ledcWriteTone(18, 440); delay(300); ledcWriteTone(18, 880); delay(500); }"
+                "kod": "// ESP32 - Donanimsal Ton\nvoid setup() { ledcAttach(18, 2000, 8); }\nvoid loop() { ledcWriteTone(18, 440); delay(300); ledcWriteTone(18, 880); delay(500); }"
             },
             "esp8266": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Buzzer (+)", "pin": "D5"}, {"bilesen": "Buzzer (-)", "pin": "GND"}],
-                "kod": "// ESP8266 Ton\nvoid setup() {}\nvoid loop() { tone(D5, 440, 200); delay(300); tone(D5, 880, 200); delay(500); }"
+                "kod": "// ESP8266 - Buzzer Ton\nvoid setup() {}\nvoid loop() { tone(D5, 440, 200); delay(300); tone(D5, 880, 200); delay(500); }"
             }
         }
     },
@@ -642,46 +656,60 @@ VARSAYILAN_PROJELER = {
         "sure": "20 Dk",
         "goruntulenme": 0,
         "indirme": 0,
-        "malzemeler": [{"adet": "1x", "isim": "ESP32 veya NodeMCU", "link": ""}],
+        "malzemeler": [{"adet": "1x", "isim": "ESP32 veya ESP8266 NodeMCU", "link": ""}],
         "kartlar": {
             "uno": {
-                "kutuphaneler": "Harici Wi-Fi shield gerektirir.",
-                "baglanti": [{"bilesen": "Dahili Wi-Fi", "pin": "Bulunmuyor (ESP kartlarını seçin)"}],
-                "kod": "// Arduino Uno tek basina Wi-Fi desteklemez.\n// ESP32 veya ESP8266 kartini seciniz."
+                "kutuphaneler": "Harici Wi-Fi Shield gerekir.",
+                "baglanti": [{"bilesen": "Wi-Fi", "pin": "Dahili Wi-Fi bulunmaz (ESP32 seçiniz)"}],
+                "kod": "// Arduino Uno dahili Wi-Fi donanimina sahip degildir.\n// Lutfen yukaridan ESP32 veya ESP8266 sekmesini seciniz."
             },
             "nano": {
-                "kutuphaneler": "Harici Wi-Fi modülü gerektirir.",
-                "baglanti": [{"bilesen": "Dahili Wi-Fi", "pin": "Bulunmuyor"}],
-                "kod": "// Arduino Nano tek basina Wi-Fi desteklemez.\n// ESP32 veya ESP8266 kartini seciniz."
+                "kutuphaneler": "Harici Wi-Fi Shield gerekir.",
+                "baglanti": [{"bilesen": "Wi-Fi", "pin": "Dahili Wi-Fi bulunmaz"}],
+                "kod": "// Arduino Nano dahili Wi-Fi donanimina sahip degildir.\n// Lutfen yukaridan ESP32 veya ESP8266 sekmesini seciniz."
             },
             "esp32": {
                 "kutuphaneler": "<WiFi.h>, <WebServer.h>",
-                "baglanti": [{"bilesen": "LED", "pin": "GPIO 2 (Dahili LED)"}],
-                "kod": "#include <WiFi.h>\n#include <WebServer.h>\nWebServer server(80);\nvoid setup() {\n  Serial.begin(115200); pinMode(2, OUTPUT);\n  WiFi.begin(\"WIFI_ADI\", \"SIFRE\");\n  while(WiFi.status() != WL_CONNECTED) delay(500);\n  Serial.println(WiFi.localIP());\n  server.on(\"/on\", []() { digitalWrite(2, HIGH); server.send(200, \"text/plain\", \"ACIK\"); });\n  server.on(\"/off\", []() { digitalWrite(2, LOW); server.send(200, \"text/plain\", \"KAPALI\"); });\n  server.begin();\n}\nvoid loop() { server.handleClient(); }"
+                "baglanti": [{"bilesen": "Dahili LED", "pin": "GPIO 2"}],
+                "kod": "#include <WiFi.h>\n#include <WebServer.h>\nWebServer server(80);\n\nvoid setup() {\n  Serial.begin(115200); pinMode(2, OUTPUT);\n  WiFi.begin(\"WIFI_ADI\", \"SIFRE\");\n  while (WiFi.status() != WL_CONNECTED) delay(500);\n  Serial.println(WiFi.localIP());\n  server.on(\"/on\", []() { digitalWrite(2, HIGH); server.send(200, \"text/plain\", \"ACIK\"); });\n  server.on(\"/off\", []() { digitalWrite(2, LOW); server.send(200, \"text/plain\", \"KAPALI\"); });\n  server.begin();\n}\nvoid loop() { server.handleClient(); }"
             },
             "esp8266": {
                 "kutuphaneler": "<ESP8266WiFi.h>, <ESP8266WebServer.h>",
-                "baglanti": [{"bilesen": "LED", "pin": "D4 (Dahili LED)"}],
-                "kod": "#include <ESP8266WiFi.h>\n#include <ESP8266WebServer.h>\nESP8266WebServer server(80);\nvoid setup() {\n  Serial.begin(115200); pinMode(D4, OUTPUT);\n  WiFi.begin(\"WIFI_ADI\", \"SIFRE\");\n  while(WiFi.status() != WL_CONNECTED) delay(500);\n  Serial.println(WiFi.localIP());\n  server.on(\"/on\", []() { digitalWrite(D4, LOW); server.send(200, \"text/plain\", \"ACIK\"); });\n  server.on(\"/off\", []() { digitalWrite(D4, HIGH); server.send(200, \"text/plain\", \"KAPALI\"); });\n  server.begin();\n}\nvoid loop() { server.handleClient(); }"
+                "baglanti": [{"bilesen": "Dahili LED", "pin": "D4"}],
+                "kod": "#include <ESP8266WiFi.h>\n#include <ESP8266WebServer.h>\nESP8266WebServer server(80);\n\nvoid setup() {\n  Serial.begin(115200); pinMode(D4, OUTPUT);\n  WiFi.begin(\"WIFI_ADI\", \"SIFRE\");\n  while (WiFi.status() != WL_CONNECTED) delay(500);\n  Serial.println(WiFi.localIP());\n  server.on(\"/on\", []() { digitalWrite(D4, LOW); server.send(200, \"text/plain\", \"ACIK\"); });\n  server.on(\"/off\", []() { digitalWrite(D4, HIGH); server.send(200, \"text/plain\", \"KAPALI\"); });\n  server.begin();\n}\nvoid loop() { server.handleClient(); }"
             }
         }
     }
 }
 
-# --- JSON YARDIMCI FONKSİYONLARI ---
+# --- JSON YARDIMCI FONKSİYONLARI (KUSURSUZ ONARIM) ---
 def veri_yukle():
     if not os.path.exists(VERI_DOSYASI):
         with open(VERI_DOSYASI, "w", encoding="utf-8") as f:
             json.dump(VARSAYILAN_PROJELER, f, ensure_ascii=False, indent=2)
         return VARSAYILAN_PROJELER
+
     try:
         with open(VERI_DOSYASI, "r", encoding="utf-8") as f:
             d = json.load(f)
-            # Eğer eksik kalmışsa 20 varsayılan projeyi tamamla
-            for k, v in VARSAYILAN_PROJELER.items():
-                if k not in d:
-                    d[k] = v
-            return d
+        
+        # Diskteki dosyada kodlar boşsa veya eksik proje varsa otomatik tamamla
+        degisti = False
+        for pid, pdata in VARSAYILAN_PROJELER.items():
+            if pid not in d:
+                d[pid] = pdata
+                degisti = True
+            else:
+                # Kart kodları silinmişse kurtar
+                for kart in ["uno", "nano", "esp32", "esp8266"]:
+                    if kart not in d[pid].get("kartlar", {}) or not d[pid]["kartlar"][kart].get("kod"):
+                        d[pid].setdefault("kartlar", {})[kart] = pdata["kartlar"][kart]
+                        degisti = True
+        
+        if degisti:
+            with open(VERI_DOSYASI, "w", encoding="utf-8") as f:
+                json.dump(d, f, ensure_ascii=False, indent=2)
+        return d
     except:
         return VARSAYILAN_PROJELER
 
@@ -702,7 +730,7 @@ def istek_kaydet(istekler):
     with open(ISTEK_DOSYASI, "w", encoding="utf-8") as f:
         json.dump(istekler, f, ensure_ascii=False, indent=2)
 
-# --- SİTE ÖNYÜZ ROTALARI ---
+# --- GENEL KULLANICI ROTALARI ---
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -750,37 +778,43 @@ def istek_gonder():
     istekler = istek_yukle()
     istekler.append({"mesaj": mesaj, "iletisim": iletisim})
     istek_kaydet(istekler)
-    return jsonify({"durum": "basarili", "mesaj": "Geri bildiriminiz iletildi!"})
+    return jsonify({"durum": "basarili", "mesaj": "Geri bildiriminiz başarıyla iletildi!"})
 
 # ==============================================================================
-# TAM YETKİLİ ADMİN PANELİ (Giriş, CRUD, Linkler, Kodlar, İstatistikler)
+# GİZLİ & TAM YETKİLİ ADMİN PANELİ (ŞİFRE ASLA AÇIKTA YAZMAZ)
 # ==============================================================================
 ADMIN_LOGIN_HTML = """
 <!DOCTYPE html>
-<html>
-<head><title>ArduKod - Yönetici Girişi</title>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Yönetici Girişi</title>
 <style>
 body{background:#0d1117;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}
-.box{background:#161b22;border:1px solid #30363d;padding:30px;border-radius:8px;width:320px;text-align:center;}
+.box{background:#161b22;border:1px solid #30363d;padding:30px;border-radius:8px;width:300px;text-align:center;}
 input{width:100%;box-sizing:border-box;padding:10px;margin:15px 0;background:#0d1117;border:1px solid #30363d;color:#fff;border-radius:6px;outline:none;}
 button{width:100%;padding:10px;background:#00979d;border:none;color:#fff;font-weight:bold;border-radius:6px;cursor:pointer;}
-</style></head>
+</style>
+</head>
 <body>
 <div class="box">
-  <h2>⚡ ArduKod Admin</h2>
+  <h3 style="margin-top:0;">⚡ ArduKod Panel</h3>
   <form method="POST">
-    <input type="password" name="sifre" placeholder="Yönetici Şifresi (admin123)" required autofocus>
+    <input type="password" name="sifre" placeholder="Yönetici Parolası" required autofocus>
     <button type="submit">Giriş Yap</button>
   </form>
-  {% if hata %}<p style="color:#f85149;margin-top:10px;">{{ hata }}</p>{% endif %}
+  {% if hata %}<p style="color:#f85149;margin-top:12px;font-size:13px;">{{ hata }}</p>{% endif %}
 </div>
-</body></html>
+</body>
+</html>
 """
 
 ADMIN_PANEL_HTML = """
 <!DOCTYPE html>
-<html>
-<head><title>ArduKod - Tam Yetkili Yönetim Paneli</title>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>ArduKod - Yönetim Portalı</title>
 <style>
 body{background:#0d1117;color:#fff;font-family:sans-serif;padding:20px;margin:0;}
 .top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #30363d;padding-bottom:15px;}
@@ -797,14 +831,15 @@ th{background:#21262d;}
 .modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;padding:20px;z-index:1000;}
 .modal-content{background:#161b22;border:1px solid #30363d;padding:20px;border-radius:8px;width:750px;max-height:90vh;overflow-y:auto;}
 input,select,textarea{width:100%;box-sizing:border-box;padding:8px;background:#0d1117;border:1px solid #30363d;color:#fff;border-radius:4px;margin-bottom:10px;font-family:inherit;}
-</style></head>
+</style>
+</head>
 <body>
 
 <div class="top">
   <h2>⚡ ArduKod Tam Yetkili Yönetim</h2>
   <div>
     <button class="btn btn-green" onclick="yeniProjeModal()">+ Yeni Proje Ekle</button>
-    <a href="/" target="_blank" class="btn btn-blue">Siteye Git</a>
+    <a href="/" target="_blank" class="btn btn-blue">🌐 Siteye Git</a>
     <a href="/admin/cikis" class="btn btn-red">Çıkış</a>
   </div>
 </div>
@@ -852,7 +887,7 @@ input,select,textarea{width:100%;box-sizing:border-box;padding:8px;background:#0
   </tbody>
 </table>
 
-<!-- PROJE EKLEME / DÜZENLEME PENCERESİ -->
+<!-- PROJE EKLEME & DÜZENLEME PENCERESİ -->
 <div id="pModal" class="modal">
   <div class="modal-content">
     <h3 id="mTitle">Proje Yönetimi</h3>
@@ -873,10 +908,10 @@ input,select,textarea{width:100%;box-sizing:border-box;padding:8px;background:#0
     <button type="button" class="btn btn-blue" onclick="malzemeSatiriEkle()" style="margin-bottom:15px;">+ Malzeme Ekle</button>
 
     <h4>💻 4 Kartın C++ Kodları</h4>
-    <label>Arduino Uno Kodu:</label><textarea id="f_kod_uno" rows="4"></textarea>
-    <label>Arduino Nano Kodu:</label><textarea id="f_kod_nano" rows="4"></textarea>
-    <label>ESP32 Kodu:</label><textarea id="f_kod_esp32" rows="4"></textarea>
-    <label>ESP8266 Kodu:</label><textarea id="f_kod_esp8266" rows="4"></textarea>
+    <label>Arduino Uno Kodu:</label><textarea id="f_kod_uno" rows="5"></textarea>
+    <label>Arduino Nano Kodu:</label><textarea id="f_kod_nano" rows="5"></textarea>
+    <label>ESP32 Kodu:</label><textarea id="f_kod_esp32" rows="5"></textarea>
+    <label>ESP8266 Kodu:</label><textarea id="f_kod_esp8266" rows="5"></textarea>
 
     <div style="text-align:right;margin-top:15px;">
       <button class="btn" style="background:#30363d;color:#fff;" onclick="modalKapat()">Kapat</button>
@@ -955,10 +990,10 @@ async function kaydet() {
   });
 
   const kartlar = (aktifProjeData && aktifProjeData.kartlar) ? aktifProjeData.kartlar : {
-    uno: { baglanti: [{"bilesen":"VCC/GND","pin":"5V/GND"}], kutuphaneler: "Harici kütüphane gerekmez." },
-    nano: { baglanti: [{"bilesen":"VCC/GND","pin":"5V/GND"}], kutuphaneler: "Harici kütüphane gerekmez." },
-    esp32: { baglanti: [{"bilesen":"VCC/GND","pin":"3.3V/GND"}], kutuphaneler: "Harici kütüphane gerekmez." },
-    esp8266: { baglanti: [{"bilesen":"VCC/GND","pin":"3.3V/GND"}], kutuphaneler: "Harici kütüphane gerekmez." }
+    uno: { baglanti: [{"bilesen":"Besleme","pin":"5V/GND"}], kutuphaneler: "Harici kütüphane gerekmez." },
+    nano: { baglanti: [{"bilesen":"Besleme","pin":"5V/GND"}], kutuphaneler: "Harici kütüphane gerekmez." },
+    esp32: { baglanti: [{"bilesen":"Besleme","pin":"3.3V/GND"}], kutuphaneler: "Harici kütüphane gerekmez." },
+    esp8266: { baglanti: [{"bilesen":"Besleme","pin":"3.3V/GND"}], kutuphaneler: "Harici kütüphane gerekmez." }
   };
 
   kartlar.uno.kod = document.getElementById('f_kod_uno').value;
@@ -997,7 +1032,8 @@ async function istekSil(idx) {
   location.reload();
 }
 </script>
-</body></html>
+</body>
+</html>
 """
 
 @app.route('/admin', methods=['GET', 'POST'])

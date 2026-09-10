@@ -18,7 +18,7 @@ Tek dosyalık Flask uygulaması.
 
 Ortam değişkenleri (güvenlik için ÖNERİLİR, Render -> Environment kısmından ayarlayın):
     ADMIN_USERNAME   -> admin kullanıcı adı (varsayılan: admin)
-    ADMIN_PASSWORD   -> admin şifresi     (varsayılan: ArduKod2026!)
+    ADMIN_PASSWORD   -> admin şifresi     (varsayılan: admin123)
     SECRET_KEY       -> flask session anahtarı (verilmezse her başlatmada rastgele üretilir,
                          bu da sunucu her yeniden başladığında oturumların düşmesine sebep olur.
                          Render'da sabit bir SECRET_KEY tanımlamanız tavsiye edilir.)

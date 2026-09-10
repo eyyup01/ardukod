@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ArduKod - Arduino Geliştirici Kütüphanesi</title>
-    <!-- Prism.js C++ Syntax Highlighting -->
+    <title>ArduKod - Mühendislik & Maker Portalı</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <style>
         :root {
@@ -16,6 +15,8 @@
             --text-main: #f0f6fc;
             --text-sub: #8b949e;
             --accent-green: #3fb950;
+            --accent-orange: #d29922;
+            --accent-blue: #58a6ff;
         }
         * { box-sizing: border-box; }
         body {
@@ -23,39 +24,179 @@
             color: var(--text-main);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
-            display: flex;
             height: 100vh;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* MOBİL ÜST BAR (Sadece mobilde görünür) */
-        .mobile-navbar {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 56px;
+        /* ÜST MENÜ ÇUBUĞU */
+        .topbar {
+            height: 54px;
             background-color: var(--panel-bg);
             border-bottom: 1px solid var(--border);
-            padding: 0 16px;
+            display: flex;
             align-items: center;
             justify-content: space-between;
+            padding: 0 20px;
+            flex-shrink: 0;
             z-index: 100;
         }
-        .menu-toggle-btn {
-            background: none;
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            font-size: 20px;
-            padding: 4px 10px;
+        .brand {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .hub-btn {
+            background-color: rgba(0, 151, 157, 0.15);
+            color: var(--primary-hover);
+            border: 1px solid var(--primary);
+            padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
+            font-size: 12.5px;
+            font-weight: 600;
         }
 
-        /* SOL MENÜ (SIDEBAR) */
+        /* GÖRÜNÜM ALANI */
+        .main-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        .view-section {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            overflow-y: auto;
+            display: none;
+        }
+        .view-section.active { display: block; }
+
+        /* 1. HUB (GİRİŞ KARŞILAMA EKRANI) */
+        .hub-wrapper {
+            max-width: 960px;
+            margin: 40px auto;
+            padding: 0 20px;
+            text-align: center;
+        }
+        .hub-title { font-size: 28px; margin-bottom: 8px; }
+        .hub-subtitle { color: var(--text-sub); margin-bottom: 35px; font-size: 15px; }
+        .hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+        .hub-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: left;
+        }
+        .hub-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        .hub-card-icon { font-size: 32px; margin-bottom: 12px; }
+        .hub-card-title { font-size: 17px; font-weight: bold; margin-bottom: 6px; }
+        .hub-card-desc { font-size: 13px; color: var(--text-sub); line-height: 1.4; }
+
+        /* 2. DİRENÇ HESAPLAMA ARAÇLARI */
+        .tools-wrapper {
+            max-width: 860px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .tool-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .tool-title { font-size: 18px; font-weight: bold; margin-bottom: 16px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+
+        /* Sanal Direnç Çizimi */
+        .resistor-display {
+            background: #2a2015;
+            height: 48px;
+            max-width: 320px;
+            margin: 15px auto 20px auto;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 20px;
+            position: relative;
+            border: 2px solid #5a4632;
+        }
+        .resistor-display::before, .resistor-display::after {
+            content: "";
+            position: absolute;
+            height: 6px;
+            width: 30px;
+            background: #8b949e;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .resistor-display::before { left: -30px; }
+        .resistor-display::after { right: -30px; }
+        .resistor-band {
+            width: 14px;
+            height: 100%;
+            border-radius: 2px;
+        }
+
+        .band-selectors {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+        }
+        .select-label { font-size: 11px; color: var(--text-sub); margin-bottom: 4px; font-weight: bold; }
+        select, input[type="text"] {
+            width: 100%;
+            padding: 9px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border);
+            color: #fff;
+            border-radius: 6px;
+            font-size: 13.5px;
+            outline: none;
+        }
+        select:focus, input[type="text"]:focus { border-color: var(--primary); }
+
+        .result-box {
+            margin-top: 18px;
+            background-color: rgba(0, 151, 157, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--accent-green);
+        }
+
+        /* 3. PROJE KÜTÜPHANESİ GÖRÜNÜMÜ */
+        .workspace-view {
+            display: flex;
+            height: 100%;
+            overflow: hidden;
+        }
         .sidebar {
-            width: 320px;
+            width: 300px;
             background-color: var(--panel-bg);
             border-right: 1px solid var(--border);
             display: flex;
@@ -64,53 +205,8 @@
             transition: transform 0.3s ease;
             z-index: 99;
         }
-        .sidebar-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-        }
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header-top h2 {
-            margin: 0;
-            color: var(--primary);
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .admin-link {
-            color: var(--text-sub);
-            text-decoration: none;
-            font-size: 12px;
-            padding: 4px 8px;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            transition: 0.2s;
-        }
-        .admin-link:hover {
-            color: #fff;
-            border-color: var(--primary);
-        }
-        .search-input {
-            width: 100%;
-            margin-top: 12px;
-            padding: 9px 12px;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: #fff;
-            outline: none;
-            font-size: 13.5px;
-        }
-        .search-input:focus { border-color: var(--primary); }
-        .project-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px;
-        }
+        .search-area { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+        .project-list { flex: 1; overflow-y: auto; padding: 12px; }
         .category-group { margin-bottom: 14px; }
         .category-title {
             font-size: 11px;
@@ -133,173 +229,270 @@
         .project-item:hover { background-color: rgba(0, 151, 157, 0.15); color: var(--primary-hover); }
         .project-item.active { background-color: var(--primary); color: #fff; font-weight: 500; }
 
-        /* SAĞ İÇERİK ALANI */
         .content {
             flex: 1;
-            padding: 30px 40px;
+            padding: 24px 35px;
             overflow-y: auto;
             width: 100%;
         }
-        .project-title { font-size: 24px; color: var(--text-main); margin-top: 0; margin-bottom: 16px; line-height: 1.3; }
-        .section-label {
-            font-size: 14px;
-            color: var(--primary);
-            font-weight: 600;
-            margin-top: 22px;
-            margin-bottom: 10px;
+        .project-title { font-size: 24px; margin: 0 0 8px 0; }
+        .badges-row { display: flex; gap: 8px; margin-bottom: 20px; }
+        .badge {
+            font-size: 11.5px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            color: var(--text-sub);
+        }
+
+        .materials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .material-item {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 10px;
+            font-size: 13px;
         }
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-            border-radius: 8px;
-            border: 1px solid var(--border);
+        .material-qty {
+            background: rgba(0, 151, 157, 0.2);
+            color: var(--primary-hover);
+            font-weight: bold;
+            font-size: 11.5px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .card-tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin: 15px 0; overflow-x: auto; }
+        .card-btn {
             background-color: var(--panel-bg);
+            border: 1px solid var(--border);
+            color: var(--text-sub);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 320px;
-        }
-        th, td {
-            padding: 10px 14px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            font-size: 13.5px;
-        }
+        .card-btn.active { background-color: var(--primary); border-color: var(--primary); color: white; }
+
+        .section-label { font-size: 14px; color: var(--primary); font-weight: 600; margin: 20px 0 10px 0; }
+        .table-responsive { width: 100%; overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); background-color: var(--panel-bg); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13.5px; }
         th { background-color: rgba(255, 255, 255, 0.03); color: var(--text-sub); }
         td.pin-cell { color: var(--accent-green); font-family: monospace; font-weight: bold; }
+
         .code-container { position: relative; margin-top: 10px; }
-        pre[class*="language-"] {
-            margin: 0;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            font-size: 13px;
-            max-height: 500px;
-        }
-        .copy-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
+        .code-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; z-index: 10; }
+        .btn-action {
             background-color: #21262d;
             border: 1px solid var(--border);
             color: var(--text-sub);
-            padding: 5px 10px;
-            font-size: 11px;
+            padding: 6px 12px;
+            font-size: 12px;
             border-radius: 4px;
             cursor: pointer;
-            z-index: 10;
         }
-        .copy-btn:hover { color: #fff; border-color: var(--primary); }
+        .btn-download { background-color: rgba(0, 151, 157, 0.2); color: var(--primary-hover); border-color: var(--primary); }
 
-        /* MOBİL KARARTMA KATMANI */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 98;
-        }
-
-        /* MOBİL DUYARLILIK (RESPONSIVE STYLES) */
+        /* MOBİL UYARLAMALARI */
         @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-                height: 100%;
-                overflow-y: auto;
-            }
-            .mobile-navbar {
-                display: flex;
-            }
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                bottom: 0;
-                width: 85%;
-                max-width: 310px;
-                transform: translateX(-100%);
-                box-shadow: 2px 0 16px rgba(0, 0, 0, 0.5);
-            }
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            .sidebar-overlay.active {
-                display: block;
-            }
-            .content {
-                padding: 70px 16px 30px 16px;
-                overflow: visible;
-            }
-            .project-title {
-                font-size: 20px;
-            }
-            th, td {
-                padding: 8px 10px;
-                font-size: 12.5px;
-            }
-            pre[class*="language-"] {
-                font-size: 12px;
-            }
+            .workspace-view { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; max-height: 220px; border-right: none; border-bottom: 1px solid var(--border); }
+            .content { padding: 20px 16px; }
+            .hub-wrapper { margin: 20px auto; }
         }
     </style>
 </head>
 <body>
 
-<!-- Mobil Üst Bar -->
-<div class="mobile-navbar">
-    <button class="menu-toggle-btn" onclick="menuyuAcKapat()">☰</button>
-    <div style="font-weight: bold; color: var(--primary);">⚡ ArduKod</div>
-    <a href="/admin" class="admin-link">⚙ Admin</a>
+<!-- Üst Bar -->
+<div class="topbar">
+    <div class="brand" onclick="ekranDegistir('hub')">⚡ ArduKod</div>
+    <div class="nav-actions">
+        <button class="hub-btn" onclick="ekranDegistir('tools')">🛠️ Direnç Araçları</button>
+        <button class="hub-btn" onclick="ekranDegistir('hub')">🎛️ Kart Seçici</button>
+    </div>
 </div>
 
-<!-- Arka Plan Karartması (Mobilde menü açıkken dokununca kapansın diye) -->
-<div id="sidebarOverlay" class="sidebar-overlay" onclick="menuyuKapat()"></div>
+<div class="main-container">
 
-<!-- Sol Menü -->
-<div id="sidebar" class="sidebar">
-    <div class="sidebar-header">
-        <div class="header-top">
-            <h2>⚡ ArduKod</h2>
-            <a href="/admin" class="admin-link">⚙ Admin</a>
-        </div>
-        <input type="text" id="searchInput" class="search-input" placeholder="Devre veya sensör ara...">
-    </div>
-    <div id="projectList" class="project-list"></div>
-</div>
-
-<!-- Sağ İçerik Alanı -->
-<div class="content">
-    <div id="detailView">
-        <h1 id="pBaslik" class="project-title">Yükleniyor...</h1>
-
-        <div class="section-label">📚 Kütüphaneler</div>
-        <p id="pKutuphane" style="color: var(--text-sub); margin: 0; font-size: 14px;"></p>
-
-        <div class="section-label">🔌 Pin Bağlantı Tablosu</div>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Bileşen / Pin</th>
-                        <th>Arduino Bağlantısı</th>
-                    </tr>
-                </thead>
-                <tbody id="pTablo"></tbody>
-            </table>
-        </div>
-
-        <div class="section-label">💻 Arduino C++ Kodu</div>
-        <div class="code-container">
-            <button class="copy-btn" onclick="koduKopyala()">Kopyala</button>
-            <pre><code id="pKod" class="language-clike"></code></pre>
+    <!-- 1. HUB (KART VE ARAÇ SEÇİM EKRANI) -->
+    <div id="hubView" class="view-section active">
+        <div class="hub-wrapper">
+            <h1 class="hub-title">Geliştirici & Maker Merkezi</h1>
+            <div class="hub-subtitle">Çalışmak istediğiniz platformu veya atölye hesaplama aracını seçin</div>
+            <div class="hub-grid">
+                <div class="hub-card" onclick="kartaGit('uno')">
+                    <div class="hub-card-icon">🔵</div>
+                    <div class="hub-card-title">Arduino Uno</div>
+                    <div class="hub-card-desc">Klasik 5V lojik, başlangıç seviyesi devreler ve temel pin kütüphanesi.</div>
+                </div>
+                <div class="hub-card" onclick="kartaGit('nano')">
+                    <div class="hub-card-icon">🔷</div>
+                    <div class="hub-card-title">Arduino Nano</div>
+                    <div class="hub-card-desc">Breadboard uyumlu kompakt devreler ve taşınabilir projeler.</div>
+                </div>
+                <div class="hub-card" onclick="kartaGit('esp32')">
+                    <div class="hub-card-icon">⚡</div>
+                    <div class="hub-card-title">ESP32 (3.3V)</div>
+                    <div class="hub-card-desc">Wi-Fi, Bluetooth, yüksek ADC çözünürlüğü ve IoT pin konfigürasyonları.</div>
+                </div>
+                <div class="hub-card" onclick="kartaGit('esp8266')">
+                    <div class="hub-card-icon">📶</div>
+                    <div class="hub-card-title">ESP8266 NodeMCU</div>
+                    <div class="hub-card-desc">Ekonomik Wi-Fi modülü ve IoT tabanlı sensör otomasyonları.</div>
+                </div>
+                <div class="hub-card" onclick="ekranDegistir('tools')">
+                    <div class="hub-card-icon">🛠️</div>
+                    <div class="hub-card-title">Direnç Araçları</div>
+                    <div class="hub-card-desc">DIP renk kodları (4-5 bant) ve SMD kod çözücü atölye aracı.</div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- 2. DİRENÇ HESAPLAMA ARAÇLARI EKRANI -->
+    <div id="toolsView" class="view-section">
+        <div class="tools-wrapper">
+            <!-- DIP Direnç -->
+            <div class="tool-card">
+                <div class="tool-title">🎨 DIP Direnç Renk Kodu Hesaplayıcı (4 Bant)</div>
+                
+                <div class="resistor-display">
+                    <div id="band1-view" class="resistor-band" style="background:#a52a2a;"></div>
+                    <div id="band2-view" class="resistor-band" style="background:#000000;"></div>
+                    <div id="band3-view" class="resistor-band" style="background:#ff0000;"></div>
+                    <div id="band4-view" class="resistor-band" style="background:#d4af37;"></div>
+                </div>
+
+                <div class="band-selectors">
+                    <div>
+                        <div class="select-label">1. BANT (1. Sayı)</div>
+                        <select id="dip-b1" onchange="dipHesapla()">
+                            <option value="1" data-color="#a52a2a">Kahverengi (1)</option>
+                            <option value="2" data-color="#ff0000">Kırmızı (2)</option>
+                            <option value="3" data-color="#ff7f00">Turuncu (3)</option>
+                            <option value="4" data-color="#ffff00">Sarı (4)</option>
+                            <option value="5" data-color="#00ff00">Yeşil (5)</option>
+                            <option value="6" data-color="#0000ff">Mavi (6)</option>
+                            <option value="7" data-color="#8a2be2">Mor (7)</option>
+                            <option value="8" data-color="#808080">Gri (8)</option>
+                            <option value="9" data-color="#ffffff">Beyaz (9)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="select-label">2. BANT (2. Sayı)</div>
+                        <select id="dip-b2" onchange="dipHesapla()">
+                            <option value="0" data-color="#000000" selected>Siyah (0)</option>
+                            <option value="1" data-color="#a52a2a">Kahverengi (1)</option>
+                            <option value="2" data-color="#ff0000">Kırmızı (2)</option>
+                            <option value="3" data-color="#ff7f00">Turuncu (3)</option>
+                            <option value="4" data-color="#ffff00">Sarı (4)</option>
+                            <option value="5" data-color="#00ff00">Yeşil (5)</option>
+                            <option value="6" data-color="#0000ff">Mavi (6)</option>
+                            <option value="7" data-color="#8a2be2">Mor (7)</option>
+                            <option value="8" data-color="#808080">Gri (8)</option>
+                            <option value="9" data-color="#ffffff">Beyaz (9)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="select-label">3. BANT (Çarpan)</div>
+                        <select id="dip-b3" onchange="dipHesapla()">
+                            <option value="1" data-color="#000000">x1 Ω (Siyah)</option>
+                            <option value="10" data-color="#a52a2a">x10 Ω (Kahve)</option>
+                            <option value="100" data-color="#ff0000" selected>x100 Ω (Kırmızı)</option>
+                            <option value="1000" data-color="#ff7f00">x1 kΩ (Turuncu)</option>
+                            <option value="10000" data-color="#ffff00">x10 kΩ (Sarı)</option>
+                            <option value="100000" data-color="#00ff00">x100 kΩ (Yeşil)</option>
+                            <option value="1000000" data-color="#0000ff">x1 MΩ (Mavi)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="select-label">4. BANT (Tolerans)</div>
+                        <select id="dip-b4" onchange="dipHesapla()">
+                            <option value="±5%" data-color="#d4af37" selected>Altın (±%5)</option>
+                            <option value="±10%" data-color="#c0c0c0">Gümüş (±%10)</option>
+                            <option value="±1%" data-color="#a52a2a">Kahve (±%1)</option>
+                            <option value="±2%" data-color="#ff0000">Kırmızı (±%2)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="result-box" id="dipSonuc">1 kΩ ±%5</div>
+            </div>
+
+            <!-- SMD Direnç -->
+            <div class="tool-card">
+                <div class="tool-title">🔍 SMD Direnç Kodu Çözücü (3 & 4 Hane)</div>
+                <div style="font-size: 13px; color: var(--text-sub); margin-bottom: 12px;">Direncin üzerindeki kodu yazın (Örn: 110, 472, 4R7, 1002, R22):</div>
+                <input type="text" id="smdInput" placeholder="Örn: 110 veya 4R7" oninput="smdHesapla()">
+                <div class="result-box" id="smdSonuc">11 Ω</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. KART PROJELERİ GÖRÜNÜMÜ -->
+    <div id="workspaceView" class="view-section">
+        <div class="workspace-view">
+            <div class="sidebar">
+                <div class="search-area">
+                    <input type="text" id="searchInput" placeholder="Devre veya sensör ara...">
+                </div>
+                <div id="projectList" class="project-list"></div>
+            </div>
+
+            <div class="content">
+                <h1 id="pBaslik" class="project-title">Yükleniyor...</h1>
+                <div class="badges-row">
+                    <span class="badge" id="pSure">⏱️ 10 Dk</span>
+                    <span class="badge" id="pZorluk">🟢 Başlangıç</span>
+                    <span class="badge" id="pKategoriBadge">Sensör</span>
+                </div>
+
+                <div class="section-label">📦 Gereken Malzemeler</div>
+                <div class="materials-grid" id="pMalzemeler"></div>
+
+                <div class="card-tabs">
+                    <button class="card-btn" id="tab-uno" onclick="kartSec('uno')">🔵 Uno</button>
+                    <button class="card-btn" id="tab-nano" onclick="kartSec('nano')">🔷 Nano</button>
+                    <button class="card-btn" id="tab-esp32" onclick="kartSec('esp32')">⚡ ESP32</button>
+                    <button class="card-btn" id="tab-esp8266" onclick="kartSec('esp8266')">📶 ESP8266</button>
+                </div>
+
+                <div class="section-label">🔌 Pin Bağlantı Tablosu</div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr><th>Bileşen / Pin</th><th>Kart Bağlantısı</th></tr>
+                        </thead>
+                        <tbody id="pTablo"></tbody>
+                    </table>
+                </div>
+
+                <div class="section-label">📚 Kütüphaneler</div>
+                <p id="pKutuphane" style="color: var(--text-sub); margin: 0; font-size: 14px;"></p>
+
+                <div class="section-label">💻 C++ Kaynak Kodu</div>
+                <div class="code-container">
+                    <div class="code-actions">
+                        <button class="btn-action" onclick="koduKopyala()">📋 Kopyala</button>
+                        <button class="btn-action btn-download" onclick="inoIndir()">⬇️ .ino İndir</button>
+                    </div>
+                    <pre><code id="pKod" class="language-clike"></code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
@@ -308,16 +501,26 @@
 
 <script>
     let tumProjeler = [];
+    let aktifProjeVerisi = null;
+    let aktifKart = 'uno';
+    let aktifProjeId = '';
 
-    // Mobil menü aç/kapa
-    function menuyuAcKapat() {
-        document.getElementById('sidebar').classList.toggle('open');
-        document.getElementById('sidebarOverlay').classList.toggle('active');
+    // Ekran Değiştirici
+    function ekranDegistir(ekranAdi) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        if (ekranAdi === 'hub') document.getElementById('hubView').classList.add('active');
+        if (ekranAdi === 'tools') {
+            document.getElementById('toolsView').classList.add('active');
+            dipHesapla();
+            smdHesapla();
+        }
+        if (ekranAdi === 'workspace') document.getElementById('workspaceView').classList.add('active');
     }
 
-    function menuyuKapat() {
-        document.getElementById('sidebar').classList.remove('open');
-        document.getElementById('sidebarOverlay').classList.remove('active');
+    function kartaGit(kartAdi) {
+        aktifKart = kartAdi;
+        ekranDegistir('workspace');
+        kartSec(kartAdi);
     }
 
     window.onload = async () => {
@@ -325,6 +528,8 @@
         tumProjeler = await res.json();
         listeyiCiz(tumProjeler);
         if (tumProjeler.length > 0) projeYukle(tumProjeler[0].id);
+        dipHesapla();
+        smdHesapla();
     };
 
     function listeyiCiz(projeler) {
@@ -345,10 +550,7 @@
                 item.className = 'project-item';
                 item.innerText = p.baslik;
                 item.id = `item-${p.id}`;
-                item.onclick = () => {
-                    projeYukle(p.id);
-                    menuyuKapat(); // Mobilde bir projeye basınca menüyü kapat
-                };
+                item.onclick = () => projeYukle(p.id);
                 grupDiv.appendChild(item);
             });
             listDiv.appendChild(grupDiv);
@@ -356,6 +558,7 @@
     }
 
     async function projeYukle(id) {
+        aktifProjeId = id;
         document.querySelectorAll('.project-item').forEach(el => el.classList.remove('active'));
         const secili = document.getElementById(`item-${id}`);
         if (secili) secili.classList.add('active');
@@ -364,21 +567,49 @@
         const data = await res.json();
 
         if (data.durum === 'basarili') {
+            aktifProjeVerisi = data.veri;
             document.getElementById('pBaslik').innerText = data.veri.baslik;
             document.getElementById('pKutuphane').innerText = data.veri.kutuphaneler;
+            document.getElementById('pSure').innerText = '⏱️ ' + (data.veri.sure || '10 Dk');
+            document.getElementById('pZorluk').innerText = '🟢 ' + (data.veri.zorluk || 'Başlangıç');
+            document.getElementById('pKategoriBadge').innerText = data.veri.kategori;
 
-            const tbody = document.getElementById('pTablo');
-            tbody.innerHTML = '';
-            data.veri.baglanti.forEach(b => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${b.bilesen}</td><td class="pin-cell">${b.pin}</td>`;
-                tbody.appendChild(tr);
+            const matDiv = document.getElementById('pMalzemeler');
+            matDiv.innerHTML = '';
+            (data.veri.malzemeler || []).forEach(m => {
+                const box = document.createElement('div');
+                box.className = 'material-item';
+                box.innerHTML = `<span class="material-qty">${m.adet}</span> <span>${m.isim}</span>`;
+                matDiv.appendChild(box);
             });
 
-            const kodEl = document.getElementById('pKod');
-            kodEl.textContent = data.veri.kod;
-            Prism.highlightElement(kodEl);
+            kartGoster(aktifKart);
         }
+    }
+
+    function kartSec(kartAdi) {
+        aktifKart = kartAdi;
+        document.querySelectorAll('.card-btn').forEach(btn => btn.classList.remove('active'));
+        const aktifBtn = document.getElementById(`tab-${kartAdi}`);
+        if (aktifBtn) aktifBtn.classList.add('active');
+        kartGoster(kartAdi);
+    }
+
+    function kartGoster(kartAdi) {
+        if (!aktifProjeVerisi || !aktifProjeVerisi.kartlar) return;
+        const kartBilgisi = aktifProjeVerisi.kartlar[kartAdi] || aktifProjeVerisi.kartlar['uno'];
+
+        const tbody = document.getElementById('pTablo');
+        tbody.innerHTML = '';
+        kartBilgisi.baglanti.forEach(b => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${b.bilesen}</td><td class="pin-cell">${b.pin}</td>`;
+            tbody.appendChild(tr);
+        });
+
+        const kodEl = document.getElementById('pKod');
+        kodEl.textContent = kartBilgisi.kod;
+        Prism.highlightElement(kodEl);
     }
 
     document.getElementById('searchInput').addEventListener('input', (e) => {
@@ -388,8 +619,89 @@
 
     function koduKopyala() {
         navigator.clipboard.writeText(document.getElementById('pKod').textContent).then(() => {
-            alert('Kod kopyalandı!');
+            alert('Kod panoya kopyalandı!');
         });
+    }
+
+    function inoIndir() {
+        const kodMetni = document.getElementById('pKod').textContent;
+        const dosyaAdi = `${aktifProjeId}_${aktifKart}.ino`;
+        const blob = new Blob([kodMetni], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = dosyaAdi;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // ==========================================
+    // DIP DİRENÇ HESAPLAMA MOTORU
+    // ==========================================
+    function dipHesapla() {
+        const b1 = document.getElementById('dip-b1');
+        const b2 = document.getElementById('dip-b2');
+        const b3 = document.getElementById('dip-b3');
+        const b4 = document.getElementById('dip-b4');
+
+        // Renkleri sanal dirence yansıt
+        document.getElementById('band1-view').style.background = b1.options[b1.selectedIndex].dataset.color;
+        document.getElementById('band2-view').style.background = b2.options[b2.selectedIndex].dataset.color;
+        document.getElementById('band3-view').style.background = b3.options[b3.selectedIndex].dataset.color;
+        document.getElementById('band4-view').style.background = b4.options[b4.selectedIndex].dataset.color;
+
+        const val = (parseInt(b1.value) * 10 + parseInt(b2.value)) * parseFloat(b3.value);
+        const tol = b4.value;
+
+        let formatted = val + ' Ω';
+        if (val >= 1000000) formatted = (val / 1000000).toFixed(val % 1000000 === 0 ? 0 : 2) + ' MΩ';
+        else if (val >= 1000) formatted = (val / 1000).toFixed(val % 1000 === 0 ? 0 : 1) + ' kΩ';
+
+        document.getElementById('dipSonuc').innerText = `${formatted} ${tol}`;
+    }
+
+    // ==========================================
+    // SMD DİRENÇ ÇÖZÜCÜ MOTORU (110 -> 11 Ohm)
+    // ==========================================
+    function smdHesapla() {
+        let code = document.getElementById('smdInput').value.trim().toUpperCase();
+        if (!code) code = "110";
+
+        const out = document.getElementById('smdSonuc');
+
+        // R Harfi İçerenler (4R7, R22 vb.)
+        if (code.includes('R')) {
+            let replaced = code.replace('R', '.');
+            if (replaced.startsWith('.')) replaced = '0' + replaced;
+            out.innerText = replaced + ' Ω';
+            return;
+        }
+
+        // 3 Haneli Kod (Örn: 110 -> 11 * 10^0 = 11 Ohm)
+        if (/^\d{3}$/.test(code)) {
+            const significant = parseInt(code.substring(0, 2));
+            const multiplier = Math.pow(10, parseInt(code.charAt(2)));
+            const val = significant * multiplier;
+            out.innerText = formatOhm(val);
+            return;
+        }
+
+        // 4 Haneli Kod (Örn: 1002 -> 100 * 10^2 = 10k Ohm)
+        if (/^\d{4}$/.test(code)) {
+            const significant = parseInt(code.substring(0, 3));
+            const multiplier = Math.pow(10, parseInt(code.charAt(3)));
+            const val = significant * multiplier;
+            out.innerText = formatOhm(val);
+            return;
+        }
+
+        out.innerText = 'Geçersiz Kod (Örn: 110, 472, 4R7, 1002)';
+    }
+
+    function formatOhm(val) {
+        if (val >= 1000000) return (val / 1000000) + ' MΩ (±%5)';
+        if (val >= 1000) return (val / 1000) + ' kΩ (±%5)';
+        return val + ' Ω (±%5)';
     }
 </script>
 

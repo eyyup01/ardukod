@@ -3,7 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ArduKod - Mühendislik & Maker Portalı</title>
+    
+    <!-- Google Arama Konsolu Doğrulama Kodu -->
+    <meta name="google-site-verification" content="rqDx02_kw5Jp7vBu17ScPHz8S4JhS3mQaCxLMV_KsAs" />
+
+    <!-- Temel SEO Meta Etiketleri -->
+    <title>ArduKod - Arduino, ESP32 Devreleri ve Atölye Hesaplama Portalı</title>
+    <meta name="description" content="ArduKod: Arduino Uno, Nano, ESP32 ve ESP8266 için doğrulanmış pin bağlantıları, C++ kodları, DIP ve SMD direnç hesaplama ile kondansatör kod çözücü araçları.">
+    <meta name="keywords" content="ardukod, ardukod arduino, arduino projeleri, esp32 projeleri, esp8266 kodları, direnç renk hesaplama, smd direnç çözücü, kondansatör kodu, elektronik devre şemaları">
+    <meta name="author" content="ArduKod">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://ardukod.onrender.com/">
+
+    <!-- Sosyal Medya ve Paylaşım Kartları (Open Graph) -->
+    <meta property="og:locale" content="tr_TR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="ArduKod - Mühendislik & Maker Portalı">
+    <meta property="og:description" content="Arduino, Nano, ESP32 ve ESP8266 projeleri, pin tabloları ve elektronik atölye hesaplama araçları.">
+    <meta property="og:url" content="https://ardukod.onrender.com/">
+    <meta property="og:site_name" content="ArduKod">
+
+    <!-- CSS & Kütüphaneler -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <style>
         :root {
@@ -720,7 +740,6 @@
 
         const out = document.getElementById('capSonuc');
 
-        // Harfli tolerans ayıklama (J: %5, K: %10, M: %20)
         let tolStr = "";
         const tolMap = { 'F': '±%1', 'G': '±%2', 'J': '±%5', 'K': '±%10', 'M': '±%20', 'Z': '+%80/-%20' };
         let lastChar = raw.slice(-1);
@@ -731,7 +750,6 @@
             codePart = raw.slice(0, -1);
         }
 
-        // Harfli formatlar (4n7, 2p2, 1u5 vb.)
         if (/[NPU]/.test(codePart)) {
             let val = 0;
             if (codePart.includes('N')) {
@@ -753,7 +771,6 @@
             }
         }
 
-        // 3 Haneli Standart Kod (Örn: 104 -> 10 x 10^4 pF = 100,000 pF = 100 nF = 0.1 µF)
         if (/^\d{3}$/.test(codePart)) {
             const sig = parseInt(codePart.substring(0, 2));
             const mul = parseInt(codePart.charAt(2));
@@ -774,7 +791,6 @@
             return;
         }
 
-        // 1 veya 2 Haneli doğrudan pF değeri (Örn: 22 -> 22 pF)
         if (/^\d{1,2}$/.test(codePart)) {
             const pf = parseInt(codePart);
             out.innerText = `${pf} pF (${(pf / 1000).toFixed(3)} nF)${tolStr}`;

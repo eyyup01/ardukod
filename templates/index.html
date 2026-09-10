@@ -73,7 +73,7 @@
         .nav-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         .hub-btn {
             background-color: rgba(0, 151, 157, 0.15);
@@ -84,6 +84,14 @@
             cursor: pointer;
             font-size: 12.5px;
             font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        .hub-btn-admin {
+            background-color: rgba(88, 166, 255, 0.15);
+            color: var(--accent-blue);
+            border-color: var(--accent-blue);
         }
 
         .main-container {
@@ -182,7 +190,7 @@
             gap: 10px;
         }
         .select-label { font-size: 11px; color: var(--text-sub); margin-bottom: 4px; font-weight: bold; }
-        select, input[type="text"] {
+        select, input[type="text"], textarea {
             width: 100%;
             padding: 9px;
             background-color: var(--bg-color);
@@ -192,7 +200,7 @@
             font-size: 13.5px;
             outline: none;
         }
-        select:focus, input[type="text"]:focus { border-color: var(--primary); }
+        select:focus, input[type="text"]:focus, textarea:focus { border-color: var(--primary); }
 
         .result-box {
             margin-top: 18px;
@@ -264,7 +272,7 @@
 
         .materials-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 10px;
             margin-bottom: 20px;
         }
@@ -275,8 +283,13 @@
             padding: 8px 12px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: space-between;
             font-size: 13px;
+        }
+        .material-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .material-qty {
             background: rgba(0, 151, 157, 0.2);
@@ -285,6 +298,16 @@
             font-size: 11.5px;
             padding: 2px 6px;
             border-radius: 4px;
+        }
+        .btn-buy {
+            background-color: rgba(63, 185, 80, 0.15);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: bold;
         }
 
         .card-tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin: 15px 0; overflow-x: auto; }
@@ -320,6 +343,14 @@
         }
         .btn-download { background-color: rgba(0, 151, 157, 0.2); color: var(--primary-hover); border-color: var(--primary); }
 
+        .feedback-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 35px;
+        }
+
         @media (max-width: 768px) {
             .workspace-view { flex-direction: column; }
             .sidebar { width: 100%; height: auto; max-height: 220px; border-right: none; border-bottom: 1px solid var(--border); }
@@ -335,6 +366,7 @@
     <div class="nav-actions">
         <button class="hub-btn" onclick="ekranDegistir('tools')">🛠️ Atölye Araçları</button>
         <button class="hub-btn" onclick="ekranDegistir('hub')">🎛️ Kart Seçici</button>
+        <a href="/admin" target="_blank" class="hub-btn hub-btn-admin">🔐 Admin</a>
     </div>
 </div>
 
@@ -456,7 +488,7 @@
                 <div class="result-box" id="smdSonuc">11 Ω (±%5)</div>
             </div>
 
-            <!-- Kondansatör (Kapasitör) Kod Çözücü -->
+            <!-- Kondansatör Kod Çözücü -->
             <div class="tool-card">
                 <div class="tool-title">⚡ Kondansatör Kod Çözücü (Mercimek & Polyester)</div>
                 <div style="font-size: 13px; color: var(--text-sub); margin-bottom: 12px;">Kondansatör üzerindeki kodu yazın (Örn: 104, 223J, 471K, 4n7, 2p2):</div>
@@ -484,7 +516,7 @@
                     <span class="badge" id="pKategoriBadge">Sensör</span>
                 </div>
 
-                <div class="section-label">📦 Gereken Malzemeler</div>
+                <div class="section-label">📦 Gereken Malzemeler & Ürünler</div>
                 <div class="materials-grid" id="pMalzemeler"></div>
 
                 <div class="card-tabs">
@@ -514,6 +546,17 @@
                         <button class="btn-action btn-download" onclick="inoIndir()">⬇️ .ino İndir</button>
                     </div>
                     <pre><code id="pKod" class="language-clike"></code></pre>
+                </div>
+
+                <!-- Geri Bildirim Formu -->
+                <div class="feedback-card">
+                    <div style="font-weight:bold; font-size:14px; margin-bottom:8px; color:var(--primary);">💬 Kod İste veya Hata Bildir</div>
+                    <div style="font-size:12.5px; color:var(--text-sub); margin-bottom:10px;">Çalışmayan bir pin mi var veya yeni bir sensör kodu mu istiyorsunuz? Bize iletin.</div>
+                    <textarea id="istekMesaj" rows="2" placeholder="Mesajınız veya kod isteğiniz..."></textarea>
+                    <div style="display:flex; gap:10px; margin-top:8px;">
+                        <input type="text" id="istekIletisim" placeholder="E-posta veya kullanıcı adı (isteğe bağlı)">
+                        <button class="hub-btn" onclick="istekGonder()" style="flex-shrink:0;">Gönder</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -550,10 +593,14 @@
     }
 
     window.onload = async () => {
-        const res = await fetch('/projeler');
-        tumProjeler = await res.json();
-        listeyiCiz(tumProjeler);
-        if (tumProjeler.length > 0) projeYukle(tumProjeler[0].id);
+        try {
+            const res = await fetch('/projeler');
+            tumProjeler = await res.json();
+            listeyiCiz(tumProjeler);
+            if (tumProjeler.length > 0) projeYukle(tumProjeler[0].id);
+        } catch (e) {
+            console.error(e);
+        }
         dipHesapla();
         smdHesapla();
         capHesapla();
@@ -590,26 +637,41 @@
         const secili = document.getElementById(`item-${id}`);
         if (secili) secili.classList.add('active');
 
-        const res = await fetch(`/proje/${id}`);
-        const data = await res.json();
+        try {
+            const res = await fetch(`/proje/${id}`);
+            const data = await res.json();
 
-        if (data.durum === 'basarili') {
-            aktifProjeVerisi = data.veri;
-            document.getElementById('pBaslik').innerText = data.veri.baslik;
-            document.getElementById('pSure').innerText = '⏱️ ' + (data.veri.sure || '10 Dk');
-            document.getElementById('pZorluk').innerText = '🟢 ' + (data.veri.zorluk || 'Başlangıç');
-            document.getElementById('pKategoriBadge').innerText = data.veri.kategori;
+            if (data.durum === 'basarili') {
+                aktifProjeVerisi = data.veri;
+                document.getElementById('pBaslik').innerText = data.veri.baslik;
+                document.getElementById('pSure').innerText = '⏱️ ' + (data.veri.sure || '10 Dk');
+                document.getElementById('pZorluk').innerText = '🟢 ' + (data.veri.zorluk || 'Başlangıç');
+                document.getElementById('pKategoriBadge').innerText = data.veri.kategori;
 
-            const matDiv = document.getElementById('pMalzemeler');
-            matDiv.innerHTML = '';
-            (data.veri.malzemeler || []).forEach(m => {
-                const box = document.createElement('div');
-                box.className = 'material-item';
-                box.innerHTML = `<span class="material-qty">${m.adet}</span> <span>${m.isim}</span>`;
-                matDiv.appendChild(box);
-            });
+                // Malzemeleri ve Satın Alma Linklerini Listele
+                const matDiv = document.getElementById('pMalzemeler');
+                matDiv.innerHTML = '';
+                (data.veri.malzemeler || []).forEach(m => {
+                    const box = document.createElement('div');
+                    box.className = 'material-item';
+                    let linkBtn = '';
+                    if (m.link && m.link.startsWith('http')) {
+                        linkBtn = `<a href="${m.link}" target="_blank" class="btn-buy">🛒 Satın Al</a>`;
+                    }
+                    box.innerHTML = `
+                        <div class="material-left">
+                            <span class="material-qty">${m.adet || '1x'}</span>
+                            <span>${m.isim}</span>
+                        </div>
+                        ${linkBtn}
+                    `;
+                    matDiv.appendChild(box);
+                });
 
-            kartGoster(aktifKart);
+                kartGoster(aktifKart);
+            }
+        } catch (e) {
+            console.error("Proje yüklenirken hata:", e);
         }
     }
 
@@ -623,20 +685,28 @@
 
     function kartGoster(kartAdi) {
         if (!aktifProjeVerisi || !aktifProjeVerisi.kartlar) return;
-        const kartBilgisi = aktifProjeVerisi.kartlar[kartAdi] || aktifProjeVerisi.kartlar['uno'];
+        const kartBilgisi = aktifProjeVerisi.kartlar[kartAdi] || aktifProjeVerisi.kartlar['uno'] || {};
 
-        document.getElementById('pKutuphane').innerText = kartBilgisi.kutuphaneler || aktifProjeVerisi.kutuphaneler || 'Harici kütüphane gerekmez.';
+        // Kütüphane bilgisi
+        document.getElementById('pKutuphane').innerText = kartBilgisi.kutuphaneler || 'Harici kütüphane gerekmez.';
 
+        // Pin Tablosu
         const tbody = document.getElementById('pTablo');
         tbody.innerHTML = '';
-        kartBilgisi.baglanti.forEach(b => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${b.bilesen}</td><td class="pin-cell">${b.pin}</td>`;
-            tbody.appendChild(tr);
-        });
+        const baglantilar = kartBilgisi.baglanti || [];
+        if (baglantilar.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="2" style="color:var(--text-sub);">Pin şeması belirtilmemiş.</td></tr>';
+        } else {
+            baglantilar.forEach(b => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${b.bilesen}</td><td class="pin-cell">${b.pin}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
 
+        // Kod Alanı
         const kodEl = document.getElementById('pKod');
-        kodEl.textContent = kartBilgisi.kod;
+        kodEl.textContent = kartBilgisi.kod || '// Bu kart için kod hazırlanıyor...';
         Prism.highlightElement(kodEl);
     }
 
@@ -651,9 +721,13 @@
         });
     }
 
-    function inoIndir() {
+    async function inoIndir() {
         const kodMetni = document.getElementById('pKod').textContent;
         const dosyaAdi = `${aktifProjeId}_${aktifKart}.ino`;
+        
+        // İndirme sayacını bildir
+        fetch(`/proje/${aktifProjeId}/indir`, { method: 'POST' });
+
         const blob = new Blob([kodMetni], { type: 'text/plain;charset=utf-8' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
@@ -663,7 +737,25 @@
         document.body.removeChild(link);
     }
 
-    // DIP HESAPLA (Siyah 0 & 0 Ohm Destekli)
+    async function istekGonder() {
+        const mesaj = document.getElementById('istekMesaj').value.trim();
+        const iletisim = document.getElementById('istekIletisim').value.trim();
+        if (!mesaj) return alert('Lütfen mesajınızı yazın.');
+
+        const res = await fetch('/istek-gonder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mesaj, iletisim })
+        });
+        const d = await res.json();
+        if (d.durum === 'basarili') {
+            alert(d.mesaj);
+            document.getElementById('istekMesaj').value = '';
+            document.getElementById('istekIletisim').value = '';
+        }
+    }
+
+    // DIP HESAPLA (Siyah 0 Destekli)
     function dipHesapla() {
         const b1 = document.getElementById('dip-b1');
         const b2 = document.getElementById('dip-b2');
@@ -733,7 +825,7 @@
         return val + ' Ω (±%5)';
     }
 
-    // KONDANSATÖR (KAPASİTÖR) HESAPLAYICI (pF, nF, µF)
+    // KONDANSATÖR HESAPLA
     function capHesapla() {
         let raw = document.getElementById('capInput').value.trim().toUpperCase();
         if (!raw) raw = "104";

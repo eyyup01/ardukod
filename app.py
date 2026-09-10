@@ -18,7 +18,7 @@ Tek dosyalık Flask uygulaması.
 
 Ortam değişkenleri (güvenlik için ÖNERİLİR, Render -> Environment kısmından ayarlayın):
     ADMIN_USERNAME   -> admin kullanıcı adı (varsayılan: admin)
-    ADMIN_PASSWORD   -> admin şifresi     (varsayılan: admin123)
+    ADMIN_PASSWORD   -> admin şifresi     (varsayılan: ArduKod2026!)
     SECRET_KEY       -> flask session anahtarı (verilmezse her başlatmada rastgele üretilir,
                          bu da sunucu her yeniden başladığında oturumların düşmesine sebep olur.
                          Render'da sabit bir SECRET_KEY tanımlamanız tavsiye edilir.)
@@ -1856,6 +1856,234 @@ void setup() {
 
 void loop() {
   server.handleClient();
+}
+"""
+},
+
+# ============================== EK UNO PROJELERİ ==============================
+
+{
+"board": "uno",
+"title": "LM35 Analog Sıcaklık Sensörü",
+"description": "LM35 sensöründen analog voltaj okuyup santigrat dereceye çevirir.",
+"pins": [("VCC", "5V"), ("GND", "GND"), ("OUT", "Analog Pin A0")],
+"links": [],
+"code": """const int LM35_PIN = A0;
+
+void setup() {
+  Serial.begin(9600);
+}
+
+void loop() {
+  int reading = analogRead(LM35_PIN);
+  float voltage = reading * (5.0 / 1023.0);
+  float tempC = voltage * 100.0; // LM35: 10mV / °C
+
+  Serial.print("Sicaklik: ");
+  Serial.print(tempC);
+  Serial.println(" *C");
+  delay(1000);
+}
+"""
+},
+
+{
+"board": "uno",
+"title": "MQ-2 Gaz/Duman Sensörü + Buzzer Alarm",
+"description": "MQ-2 sensörü ile gaz/duman seviyesini ölçer, eşik aşıldığında buzzer ile alarm çalar.",
+"pins": [("VCC", "5V"), ("GND", "GND"), ("AOUT", "Analog Pin A0"), ("Buzzer +", "Dijital Pin 8")],
+"links": [],
+"code": """const int MQ2_PIN = A0;
+const int BUZZER_PIN = 8;
+const int GAS_THRESHOLD = 400; // Ortama göre kalibre edin
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(BUZZER_PIN, OUTPUT);
+}
+
+void loop() {
+  int gasLevel = analogRead(MQ2_PIN);
+  Serial.print("Gaz seviyesi: ");
+  Serial.println(gasLevel);
+
+  if (gasLevel > GAS_THRESHOLD) {
+    tone(BUZZER_PIN, 1000);
+    Serial.println("UYARI: Gaz/Duman algilandi!");
+  } else {
+    noTone(BUZZER_PIN);
+  }
+  delay(500);
+}
+"""
+},
+
+{
+"board": "uno",
+"title": "Yağmur Sensörü (Rain Sensor)",
+"description": "Yağmur sensörü ile ıslaklık seviyesini ölçer, yağmur algılandığında LED yakar.",
+"pins": [("VCC", "5V"), ("GND", "GND"), ("AO", "Analog Pin A0"), ("LED Anot (+)", "Dijital Pin 8")],
+"links": [],
+"code": """const int RAIN_PIN = A0;
+const int LED_PIN = 8;
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(LED_PIN, OUTPUT);
+}
+
+void loop() {
+  int value = analogRead(RAIN_PIN); // Kuruken yüksek, ıslakken düşük değer verir
+  Serial.print("Yagmur sensoru: ");
+  Serial.println(value);
+
+  if (value < 500) {
+    digitalWrite(LED_PIN, HIGH); // Yağmur algılandı
+    Serial.println("Yagmur algilandi!");
+  } else {
+    digitalWrite(LED_PIN, LOW);
+  }
+  delay(500);
+}
+"""
+},
+
+{
+"board": "uno",
+"title": "SW-420 Titreşim (Vibration) Sensörü",
+"description": "Titreşim sensörü ile darbe/sarsıntı algılar ve LED ile bildirir.",
+"pins": [("VCC", "5V"), ("GND", "GND"), ("DO", "Dijital Pin 3"), ("LED Anot (+)", "Dijital Pin 8")],
+"links": [],
+"code": """const int VIBRATION_PIN = 3;
+const int LED_PIN = 8;
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(VIBRATION_PIN, INPUT);
+  pinMode(LED_PIN, OUTPUT);
+}
+
+void loop() {
+  int vibration = digitalRead(VIBRATION_PIN);
+  if (vibration == HIGH) {
+    digitalWrite(LED_PIN, HIGH);
+    Serial.println("Titresim algilandi!");
+  } else {
+    digitalWrite(LED_PIN, LOW);
+  }
+  delay(100);
+}
+"""
+},
+
+{
+"board": "uno",
+"title": "DS3231 RTC Modülü ile Saat Okuma",
+"description": "DS3231 gerçek zamanlı saat modülünden tarih ve saat bilgisini I2C üzerinden okur (RTClib kütüphanesi gerekir).",
+"pins": [("VCC", "5V"), ("GND", "GND"), ("SDA", "A4 (Uno/Nano)"), ("SCL", "A5 (Uno/Nano)")],
+"links": [],
+"code": """#include <Wire.h>
+#include <RTClib.h>
+
+RTC_DS3231 rtc;
+
+void setup() {
+  Serial.begin(9600);
+  if (!rtc.begin()) {
+    Serial.println("RTC modulu bulunamadi!");
+    while (1);
+  }
+  // Modülü bilgisayar saatine ayarlamak için (sadece ilk yüklemede) alttaki satırı açın:
+  // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+}
+
+void loop() {
+  DateTime now = rtc.now();
+  Serial.print(now.year()); Serial.print('/');
+  Serial.print(now.month()); Serial.print('/');
+  Serial.print(now.day()); Serial.print(' ');
+  Serial.print(now.hour()); Serial.print(':');
+  Serial.print(now.minute()); Serial.print(':');
+  Serial.println(now.second());
+  delay(1000);
+}
+"""
+},
+
+{
+"board": "uno",
+"title": "WS2812 (NeoPixel) LED Şerit Renk Efekti",
+"description": "Adafruit NeoPixel kütüphanesi ile WS2812 LED şeridinde kayan ışık efekti oluşturur.",
+"pins": [("VCC", "5V"), ("GND", "GND"), ("DIN", "Dijital Pin 6")],
+"links": [],
+"code": """#include <Adafruit_NeoPixel.h>
+
+#define LED_PIN 6
+#define LED_COUNT 8
+
+Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
+
+void setup() {
+  strip.begin();
+  strip.show();
+  strip.setBrightness(80);
+}
+
+void loop() {
+  for (int i = 0; i < LED_COUNT; i++) {
+    strip.clear();
+    strip.setPixelColor(i, strip.Color(0, 150, 255));
+    strip.show();
+    delay(100);
+  }
+}
+"""
+},
+
+{
+"board": "uno",
+"title": "İki IR Sensörlü Çizgi İzleyen Robot (L298N)",
+"description": "İki IR sensör ve L298N motor sürücü kullanarak basit bir çizgi izleyen robot mantığı.",
+"pins": [("IR Sol", "Dijital Pin 2"), ("IR Sağ", "Dijital Pin 4"), ("ENA", "PWM Pin 5"), ("IN1", "Pin 6"), ("IN2", "Pin 7"), ("ENB", "PWM Pin 9"), ("IN3", "Pin 8"), ("IN4", "Pin 10")],
+"links": [],
+"code": """// IR sensörler: çizgi üzerinde LOW, dışında HIGH varsayımı - sensörünüze göre kontrol edin
+const int IR_LEFT = 2;
+const int IR_RIGHT = 4;
+const int ENA = 5, IN1 = 6, IN2 = 7;
+const int ENB = 9, IN3 = 8, IN4 = 10;
+const int SPEED = 150;
+
+void motorLeft(bool forward, int speed) {
+  digitalWrite(IN1, forward ? HIGH : LOW);
+  digitalWrite(IN2, forward ? LOW : HIGH);
+  analogWrite(ENA, speed);
+}
+void motorRight(bool forward, int speed) {
+  digitalWrite(IN3, forward ? HIGH : LOW);
+  digitalWrite(IN4, forward ? LOW : HIGH);
+  analogWrite(ENB, speed);
+}
+
+void setup() {
+  pinMode(IR_LEFT, INPUT);
+  pinMode(IR_RIGHT, INPUT);
+  pinMode(ENA, OUTPUT); pinMode(IN1, OUTPUT); pinMode(IN2, OUTPUT);
+  pinMode(ENB, OUTPUT); pinMode(IN3, OUTPUT); pinMode(IN4, OUTPUT);
+}
+
+void loop() {
+  bool leftOnLine = digitalRead(IR_LEFT) == LOW;
+  bool rightOnLine = digitalRead(IR_RIGHT) == LOW;
+
+  if (leftOnLine && rightOnLine) {
+    motorLeft(true, SPEED); motorRight(true, SPEED);      // düz git
+  } else if (leftOnLine && !rightOnLine) {
+    motorLeft(false, SPEED); motorRight(true, SPEED);     // sola dön
+  } else if (!leftOnLine && rightOnLine) {
+    motorLeft(true, SPEED); motorRight(false, SPEED);     // sağa dön
+  } else {
+    motorLeft(false, 0); motorRight(false, 0);            // dur
+  }
 }
 """
 },

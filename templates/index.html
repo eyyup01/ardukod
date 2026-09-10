@@ -30,7 +30,6 @@
             flex-direction: column;
         }
 
-        /* ÜST MENÜ ÇUBUĞU */
         .topbar {
             height: 54px;
             background-color: var(--panel-bg);
@@ -67,7 +66,6 @@
             font-weight: 600;
         }
 
-        /* GÖRÜNÜM ALANI */
         .main-container {
             flex: 1;
             position: relative;
@@ -81,7 +79,7 @@
         }
         .view-section.active { display: block; }
 
-        /* 1. HUB (GİRİŞ KARŞILAMA EKRANI) */
+        /* 1. HUB EKRANI */
         .hub-wrapper {
             max-width: 960px;
             margin: 40px auto;
@@ -128,7 +126,6 @@
         }
         .tool-title { font-size: 18px; font-weight: bold; margin-bottom: 16px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
 
-        /* Sanal Direnç Çizimi */
         .resistor-display {
             background: #2a2015;
             height: 48px;
@@ -189,7 +186,7 @@
             color: var(--accent-green);
         }
 
-        /* 3. PROJE KÜTÜPHANESİ GÖRÜNÜMÜ */
+        /* 3. PROJE KÜTÜPHANESİ */
         .workspace-view {
             display: flex;
             height: 100%;
@@ -303,7 +300,6 @@
         }
         .btn-download { background-color: rgba(0, 151, 157, 0.2); color: var(--primary-hover); border-color: var(--primary); }
 
-        /* MOBİL UYARLAMALARI */
         @media (max-width: 768px) {
             .workspace-view { flex-direction: column; }
             .sidebar { width: 100%; height: auto; max-height: 220px; border-right: none; border-bottom: 1px solid var(--border); }
@@ -314,7 +310,6 @@
 </head>
 <body>
 
-<!-- Üst Bar -->
 <div class="topbar">
     <div class="brand" onclick="ekranDegistir('hub')">⚡ ArduKod</div>
     <div class="nav-actions">
@@ -325,7 +320,7 @@
 
 <div class="main-container">
 
-    <!-- 1. HUB (KART VE ARAÇ SEÇİM EKRANI) -->
+    <!-- 1. HUB (KART SEÇİCİ) -->
     <div id="hubView" class="view-section active">
         <div class="hub-wrapper">
             <h1 class="hub-title">Geliştirici & Maker Merkezi</h1>
@@ -354,7 +349,7 @@
                 <div class="hub-card" onclick="ekranDegistir('tools')">
                     <div class="hub-card-icon">🛠️</div>
                     <div class="hub-card-title">Direnç Araçları</div>
-                    <div class="hub-card-desc">DIP renk kodları (4-5 bant) ve SMD kod çözücü atölye aracı.</div>
+                    <div class="hub-card-desc">DIP renk kodları (0-9 ve altın/gümüş) ve SMD kod çözücü.</div>
                 </div>
             </div>
         </div>
@@ -438,12 +433,12 @@
                 <div class="tool-title">🔍 SMD Direnç Kodu Çözücü (3 & 4 Hane)</div>
                 <div style="font-size: 13px; color: var(--text-sub); margin-bottom: 12px;">Direncin üzerindeki kodu yazın (Örn: 110, 472, 4R7, 1002, R22):</div>
                 <input type="text" id="smdInput" placeholder="Örn: 110 veya 4R7" oninput="smdHesapla()">
-                <div class="result-box" id="smdSonuc">11 Ω</div>
+                <div class="result-box" id="smdSonuc">11 Ω (±%5)</div>
             </div>
         </div>
     </div>
 
-    <!-- 3. KART PROJELERİ GÖRÜNÜMÜ -->
+    <!-- 3. PROJE KÜTÜPHANESİ EKRANI -->
     <div id="workspaceView" class="view-section">
         <div class="workspace-view">
             <div class="sidebar">
@@ -508,7 +503,6 @@
     let aktifKart = 'uno';
     let aktifProjeId = '';
 
-    // Ekran Değiştirici
     function ekranDegistir(ekranAdi) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
         if (ekranAdi === 'hub') document.getElementById('hubView').classList.add('active');
@@ -572,7 +566,6 @@
         if (data.durum === 'basarili') {
             aktifProjeVerisi = data.veri;
             document.getElementById('pBaslik').innerText = data.veri.baslik;
-            document.getElementById('pKutuphane').innerText = data.veri.kutuphaneler;
             document.getElementById('pSure').innerText = '⏱️ ' + (data.veri.sure || '10 Dk');
             document.getElementById('pZorluk').innerText = '🟢 ' + (data.veri.zorluk || 'Başlangıç');
             document.getElementById('pKategoriBadge').innerText = data.veri.kategori;
@@ -602,6 +595,10 @@
         if (!aktifProjeVerisi || !aktifProjeVerisi.kartlar) return;
         const kartBilgisi = aktifProjeVerisi.kartlar[kartAdi] || aktifProjeVerisi.kartlar['uno'];
 
+        // Kütüphane bilgisi
+        document.getElementById('pKutuphane').innerText = kartBilgisi.kutuphaneler || aktifProjeVerisi.kutuphaneler || 'Harici kütüphane gerekmez.';
+
+        // Pin Tablosu
         const tbody = document.getElementById('pTablo');
         tbody.innerHTML = '';
         kartBilgisi.baglanti.forEach(b => {
@@ -610,6 +607,7 @@
             tbody.appendChild(tr);
         });
 
+        // Kod
         const kodEl = document.getElementById('pKod');
         kodEl.textContent = kartBilgisi.kod;
         Prism.highlightElement(kodEl);
@@ -638,26 +636,27 @@
         document.body.removeChild(link);
     }
 
-    // ==========================================
-    // DIP DİRENÇ HESAPLAMA MOTORU
-    // ==========================================
+    // DIP HESAPLA (Siyah 0 & 0 Ohm Destekli)
     function dipHesapla() {
         const b1 = document.getElementById('dip-b1');
         const b2 = document.getElementById('dip-b2');
         const b3 = document.getElementById('dip-b3');
         const b4 = document.getElementById('dip-b4');
 
-        // Renkleri sanal dirence yansıt
         document.getElementById('band1-view').style.background = b1.options[b1.selectedIndex].dataset.color;
         document.getElementById('band2-view').style.background = b2.options[b2.selectedIndex].dataset.color;
         document.getElementById('band3-view').style.background = b3.options[b3.selectedIndex].dataset.color;
         document.getElementById('band4-view').style.background = b4.options[b4.selectedIndex].dataset.color;
 
-        const val = parseFloat(((parseInt(b1.value) * 10 + parseInt(b2.value)) * parseFloat(b3.value)).toFixed(2));
+        const v1 = parseInt(b1.value);
+        const v2 = parseInt(b2.value);
+        const mul = parseFloat(b3.value);
         const tol = b4.value;
 
+        const val = parseFloat(((v1 * 10 + v2) * mul).toFixed(2));
+
         if (val === 0) {
-            document.getElementById('dipSonuc').innerText = `0 Ω (Jumper / Köprü Direnç)`;
+            document.getElementById('dipSonuc').innerText = '0 Ω (Jumper / Köprü Direnç)';
             return;
         }
 
@@ -668,9 +667,7 @@
         document.getElementById('dipSonuc').innerText = `${formatted} ${tol}`;
     }
 
-    // ==========================================
-    // SMD DİRENÇ ÇÖZÜCÜ MOTORU
-    // ==========================================
+    // SMD HESAPLA
     function smdHesapla() {
         let code = document.getElementById('smdInput').value.trim().toUpperCase();
         if (!code) code = "110";

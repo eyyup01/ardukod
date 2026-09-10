@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ArduKod - Mühendislik & Maker Portalı</title>
+    <meta name="google-site-verification" content="rqDx02_kw5Jp7vBu17ScPHz8S4JhS3mQaCxLMV_KsAs" />
+    <title>ArduKod - Arduino & ESP32 Mühendislik Portalı</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <style>
         :root {
@@ -15,7 +16,6 @@
             --text-main: #f0f6fc;
             --text-sub: #8b949e;
             --accent-green: #3fb950;
-            --accent-orange: #d29922;
             --accent-blue: #58a6ff;
         }
         * { box-sizing: border-box; }
@@ -29,8 +29,6 @@
             display: flex;
             flex-direction: column;
         }
-
-        /* ÜST MENÜ ÇUBUĞU */
         .topbar {
             height: 54px;
             background-color: var(--panel-bg);
@@ -51,11 +49,7 @@
             align-items: center;
             gap: 6px;
         }
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .nav-actions { display: flex; align-items: center; gap: 8px; }
         .hub-btn {
             background-color: rgba(0, 151, 157, 0.15);
             color: var(--primary-hover);
@@ -65,318 +59,102 @@
             cursor: pointer;
             font-size: 12.5px;
             font-weight: 600;
+            text-decoration: none;
         }
-
-        /* GÖRÜNÜM ALANI */
-        .main-container {
-            flex: 1;
-            position: relative;
-            overflow: hidden;
-        }
-        .view-section {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            overflow-y: auto;
-            display: none;
-        }
+        .main-container { flex: 1; position: relative; overflow: hidden; }
+        .view-section { position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; display: none; }
         .view-section.active { display: block; }
 
-        /* 1. HUB (GİRİŞ KARŞILAMA EKRANI) */
-        .hub-wrapper {
-            max-width: 960px;
-            margin: 40px auto;
-            padding: 0 20px;
-            text-align: center;
-        }
+        /* HUB */
+        .hub-wrapper { max-width: 960px; margin: 40px auto; padding: 0 20px; text-align: center; }
         .hub-title { font-size: 28px; margin-bottom: 8px; }
-        .hub-subtitle { color: var(--text-sub); margin-bottom: 35px; font-size: 15px; }
-        .hub-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
-        }
-        .hub-card {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            cursor: pointer;
-            transition: 0.2s;
-            text-align: left;
-        }
-        .hub-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-        }
-        .hub-card-icon { font-size: 32px; margin-bottom: 12px; }
-        .hub-card-title { font-size: 17px; font-weight: bold; margin-bottom: 6px; }
-        .hub-card-desc { font-size: 13px; color: var(--text-sub); line-height: 1.4; }
+        .hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 30px; }
+        .hub-card { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 24px; cursor: pointer; text-align: left; }
+        .hub-card:hover { border-color: var(--primary); transform: translateY(-3px); }
 
-        /* 2. DİRENÇ HESAPLAMA ARAÇLARI */
-        .tools-wrapper {
-            max-width: 860px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        .tool-card {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-        .tool-title { font-size: 18px; font-weight: bold; margin-bottom: 16px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        /* TOOLS */
+        .tools-wrapper { max-width: 860px; margin: 30px auto; padding: 0 20px; }
+        .tool-card { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 24px; }
+        .tool-title { font-size: 18px; font-weight: bold; margin-bottom: 16px; color: var(--primary); }
+        .resistor-display { background: #2a2015; height: 48px; max-width: 320px; margin: 15px auto 20px auto; border-radius: 10px; display: flex; align-items: center; justify-content: space-around; padding: 0 20px; border: 2px solid #5a4632; }
+        .resistor-band { width: 14px; height: 100%; border-radius: 2px; }
+        .band-selectors { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+        select, input[type="text"] { width: 100%; padding: 9px; background-color: var(--bg-color); border: 1px solid var(--border); color: #fff; border-radius: 6px; outline: none; }
+        .result-box { margin-top: 18px; background-color: rgba(0, 151, 157, 0.1); border: 1px solid var(--primary); border-radius: 8px; padding: 14px; text-align: center; font-size: 20px; font-weight: bold; color: var(--accent-green); }
 
-        /* Sanal Direnç Çizimi */
-        .resistor-display {
-            background: #2a2015;
-            height: 48px;
-            max-width: 320px;
-            margin: 15px auto 20px auto;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            padding: 0 20px;
-            position: relative;
-            border: 2px solid #5a4632;
-        }
-        .resistor-display::before, .resistor-display::after {
-            content: "";
-            position: absolute;
-            height: 6px;
-            width: 30px;
-            background: #8b949e;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        .resistor-display::before { left: -30px; }
-        .resistor-display::after { right: -30px; }
-        .resistor-band {
-            width: 14px;
-            height: 100%;
-            border-radius: 2px;
-        }
-
-        .band-selectors {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 10px;
-        }
-        .select-label { font-size: 11px; color: var(--text-sub); margin-bottom: 4px; font-weight: bold; }
-        select, input[type="text"] {
-            width: 100%;
-            padding: 9px;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border);
-            color: #fff;
-            border-radius: 6px;
-            font-size: 13.5px;
-            outline: none;
-        }
-        select:focus, input[type="text"]:focus { border-color: var(--primary); }
-
-        .result-box {
-            margin-top: 18px;
-            background-color: rgba(0, 151, 157, 0.1);
-            border: 1px solid var(--primary);
-            border-radius: 8px;
-            padding: 14px;
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-            color: var(--accent-green);
-        }
-
-        /* 3. PROJE KÜTÜPHANESİ GÖRÜNÜMÜ */
-        .workspace-view {
-            display: flex;
-            height: 100%;
-            overflow: hidden;
-        }
-        .sidebar {
-            width: 300px;
-            background-color: var(--panel-bg);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            transition: transform 0.3s ease;
-            z-index: 99;
-        }
+        /* WORKSPACE */
+        .workspace-view { display: flex; height: 100%; overflow: hidden; }
+        .sidebar { width: 300px; background-color: var(--panel-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
         .search-area { padding: 12px 16px; border-bottom: 1px solid var(--border); }
         .project-list { flex: 1; overflow-y: auto; padding: 12px; }
         .category-group { margin-bottom: 14px; }
-        .category-title {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-sub);
-            font-weight: bold;
-            margin-bottom: 6px;
-            padding-left: 6px;
-        }
-        .project-item {
-            padding: 9px 12px;
-            border-radius: 6px;
-            color: var(--text-main);
-            cursor: pointer;
-            font-size: 13.5px;
-            transition: 0.15s;
-            margin-bottom: 3px;
-        }
-        .project-item:hover { background-color: rgba(0, 151, 157, 0.15); color: var(--primary-hover); }
-        .project-item.active { background-color: var(--primary); color: #fff; font-weight: 500; }
+        .category-title { font-size: 11px; text-transform: uppercase; color: var(--text-sub); font-weight: bold; margin-bottom: 6px; }
+        .project-item { padding: 9px 12px; border-radius: 6px; color: var(--text-main); cursor: pointer; font-size: 13.5px; margin-bottom: 3px; }
+        .project-item:hover { background-color: rgba(0, 151, 157, 0.15); }
+        .project-item.active { background-color: var(--primary); color: #fff; }
 
-        .content {
-            flex: 1;
-            padding: 24px 35px;
-            overflow-y: auto;
-            width: 100%;
-        }
+        .content { flex: 1; padding: 24px 35px; overflow-y: auto; width: 100%; }
         .project-title { font-size: 24px; margin: 0 0 8px 0; }
-        .badges-row { display: flex; gap: 8px; margin-bottom: 20px; }
-        .badge {
-            font-size: 11.5px;
-            padding: 3px 8px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            color: var(--text-sub);
-        }
+        .materials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .material-item { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
+        .material-qty { background: rgba(0, 151, 157, 0.2); color: var(--primary-hover); font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-right: 6px; }
+        .btn-buy { background-color: rgba(63, 185, 80, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green); padding: 3px 8px; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: bold; }
 
-        .materials-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .material-item {
-            background: var(--panel-bg);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 8px 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 13px;
-        }
-        .material-qty {
-            background: rgba(0, 151, 157, 0.2);
-            color: var(--primary-hover);
-            font-weight: bold;
-            font-size: 11.5px;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-
-        .card-tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin: 15px 0; overflow-x: auto; }
-        .card-btn {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border);
-            color: var(--text-sub);
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-        }
+        .card-tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin: 15px 0; }
+        .card-btn { background-color: var(--panel-bg); border: 1px solid var(--border); color: var(--text-sub); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
         .card-btn.active { background-color: var(--primary); border-color: var(--primary); color: white; }
 
-        .section-label { font-size: 14px; color: var(--primary); font-weight: 600; margin: 20px 0 10px 0; }
-        .table-responsive { width: 100%; overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); background-color: var(--panel-bg); }
-        table { width: 100%; border-collapse: collapse; }
+        table { width: 100%; border-collapse: collapse; background-color: var(--panel-bg); border-radius: 8px; border: 1px solid var(--border); }
         th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13.5px; }
         th { background-color: rgba(255, 255, 255, 0.03); color: var(--text-sub); }
         td.pin-cell { color: var(--accent-green); font-family: monospace; font-weight: bold; }
 
         .code-container { position: relative; margin-top: 10px; }
         .code-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; z-index: 10; }
-        .btn-action {
-            background-color: #21262d;
-            border: 1px solid var(--border);
-            color: var(--text-sub);
-            padding: 6px 12px;
-            font-size: 12px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .btn-download { background-color: rgba(0, 151, 157, 0.2); color: var(--primary-hover); border-color: var(--primary); }
-
-        /* MOBİL UYARLAMALARI */
-        @media (max-width: 768px) {
-            .workspace-view { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; max-height: 220px; border-right: none; border-bottom: 1px solid var(--border); }
-            .content { padding: 20px 16px; }
-            .hub-wrapper { margin: 20px auto; }
-        }
+        .btn-action { background-color: #21262d; border: 1px solid var(--border); color: var(--text-sub); padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<!-- Üst Bar -->
 <div class="topbar">
     <div class="brand" onclick="ekranDegistir('hub')">⚡ ArduKod</div>
     <div class="nav-actions">
-        <button class="hub-btn" onclick="ekranDegistir('tools')">🛠️ Direnç Araçları</button>
+        <button class="hub-btn" onclick="ekranDegistir('tools')">🛠️ Atölye Araçları</button>
         <button class="hub-btn" onclick="ekranDegistir('hub')">🎛️ Kart Seçici</button>
+        <a href="/admin" class="hub-btn" style="color:var(--accent-blue); border-color:var(--accent-blue);">🔐 Admin</a>
     </div>
 </div>
 
 <div class="main-container">
 
-    <!-- 1. HUB (KART VE ARAÇ SEÇİM EKRANI) -->
+    <!-- 1. HUB -->
     <div id="hubView" class="view-section active">
         <div class="hub-wrapper">
             <h1 class="hub-title">Geliştirici & Maker Merkezi</h1>
-            <div class="hub-subtitle">Çalışmak istediğiniz platformu veya atölye hesaplama aracını seçin</div>
+            <div style="color:var(--text-sub);">Çalışmak istediğiniz platformu veya atölye hesaplama aracını seçin</div>
             <div class="hub-grid">
-                <div class="hub-card" onclick="kartaGit('uno')">
-                    <div class="hub-card-icon">🔵</div>
-                    <div class="hub-card-title">Arduino Uno</div>
-                    <div class="hub-card-desc">Klasik 5V lojik, başlangıç seviyesi devreler ve temel pin kütüphanesi.</div>
-                </div>
-                <div class="hub-card" onclick="kartaGit('nano')">
-                    <div class="hub-card-icon">🔷</div>
-                    <div class="hub-card-title">Arduino Nano</div>
-                    <div class="hub-card-desc">Breadboard uyumlu kompakt devreler ve taşınabilir projeler.</div>
-                </div>
-                <div class="hub-card" onclick="kartaGit('esp32')">
-                    <div class="hub-card-icon">⚡</div>
-                    <div class="hub-card-title">ESP32 (3.3V)</div>
-                    <div class="hub-card-desc">Wi-Fi, Bluetooth, yüksek ADC çözünürlüğü ve IoT pin konfigürasyonları.</div>
-                </div>
-                <div class="hub-card" onclick="kartaGit('esp8266')">
-                    <div class="hub-card-icon">📶</div>
-                    <div class="hub-card-title">ESP8266 NodeMCU</div>
-                    <div class="hub-card-desc">Ekonomik Wi-Fi modülü ve IoT tabanlı sensör otomasyonları.</div>
-                </div>
-                <div class="hub-card" onclick="ekranDegistir('tools')">
-                    <div class="hub-card-icon">🛠️</div>
-                    <div class="hub-card-title">Direnç Araçları</div>
-                    <div class="hub-card-desc">DIP renk kodları (4-5 bant) ve SMD kod çözücü atölye aracı.</div>
-                </div>
+                <div class="hub-card" onclick="kartaGit('uno')"><h3>🔵 Arduino Uno</h3><p style="color:var(--text-sub);font-size:13px;">5V lojik devreler ve temel pin kütüphanesi.</p></div>
+                <div class="hub-card" onclick="kartaGit('nano')"><h3>🔷 Arduino Nano</h3><p style="color:var(--text-sub);font-size:13px;">Breadboard uyumlu kompakt devreler.</p></div>
+                <div class="hub-card" onclick="kartaGit('esp32')"><h3>⚡ ESP32 (3.3V)</h3><p style="color:var(--text-sub);font-size:13px;">Wi-Fi, Bluetooth ve IoT pin konfigürasyonları.</p></div>
+                <div class="hub-card" onclick="kartaGit('esp8266')"><h3>📶 ESP8266 NodeMCU</h3><p style="color:var(--text-sub);font-size:13px;">Ekonomik Wi-Fi ve sensör otomasyonları.</p></div>
+                <div class="hub-card" onclick="ekranDegistir('tools')"><h3>🛠️ Atölye Araçları</h3><p style="color:var(--text-sub);font-size:13px;">Direnç ve kondansatör kod çözücüler.</p></div>
             </div>
         </div>
     </div>
 
-    <!-- 2. DİRENÇ HESAPLAMA ARAÇLARI EKRANI -->
+    <!-- 2. TOOLS -->
     <div id="toolsView" class="view-section">
         <div class="tools-wrapper">
-            <!-- DIP Direnç -->
             <div class="tool-card">
                 <div class="tool-title">🎨 DIP Direnç Renk Kodu Hesaplayıcı (4 Bant)</div>
-                
                 <div class="resistor-display">
                     <div id="band1-view" class="resistor-band" style="background:#a52a2a;"></div>
                     <div id="band2-view" class="resistor-band" style="background:#000000;"></div>
                     <div id="band3-view" class="resistor-band" style="background:#ff0000;"></div>
                     <div id="band4-view" class="resistor-band" style="background:#d4af37;"></div>
                 </div>
-
                 <div class="band-selectors">
                     <div>
-                        <div class="select-label">1. BANT (1. Sayı)</div>
                         <select id="dip-b1" onchange="dipHesapla()">
                             <option value="0" data-color="#000000">Siyah (0)</option>
                             <option value="1" data-color="#a52a2a" selected>Kahverengi (1)</option>
@@ -391,7 +169,6 @@
                         </select>
                     </div>
                     <div>
-                        <div class="select-label">2. BANT (2. Sayı)</div>
                         <select id="dip-b2" onchange="dipHesapla()">
                             <option value="0" data-color="#000000" selected>Siyah (0)</option>
                             <option value="1" data-color="#a52a2a">Kahverengi (1)</option>
@@ -406,7 +183,6 @@
                         </select>
                     </div>
                     <div>
-                        <div class="select-label">3. BANT (Çarpan)</div>
                         <select id="dip-b3" onchange="dipHesapla()">
                             <option value="0.01" data-color="#c0c0c0">x0.01 Ω (Gümüş)</option>
                             <option value="0.1" data-color="#d4af37">x0.1 Ω (Altın)</option>
@@ -420,7 +196,6 @@
                         </select>
                     </div>
                     <div>
-                        <div class="select-label">4. BANT (Tolerans)</div>
                         <select id="dip-b4" onchange="dipHesapla()">
                             <option value="±5%" data-color="#d4af37" selected>Altın (±%5)</option>
                             <option value="±10%" data-color="#c0c0c0">Gümüş (±%10)</option>
@@ -429,21 +204,24 @@
                         </select>
                     </div>
                 </div>
-
                 <div class="result-box" id="dipSonuc">1 kΩ ±%5</div>
             </div>
 
-            <!-- SMD Direnç -->
             <div class="tool-card">
-                <div class="tool-title">🔍 SMD Direnç Kodu Çözücü (3 & 4 Hane)</div>
-                <div style="font-size: 13px; color: var(--text-sub); margin-bottom: 12px;">Direncin üzerindeki kodu yazın (Örn: 110, 472, 4R7, 1002, R22):</div>
+                <div class="tool-title">🔍 SMD Direnç Kodu Çözücü</div>
                 <input type="text" id="smdInput" placeholder="Örn: 110 veya 4R7" oninput="smdHesapla()">
-                <div class="result-box" id="smdSonuc">11 Ω</div>
+                <div class="result-box" id="smdSonuc">11 Ω (±%5)</div>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-title">⚡ Kondansatör Kod Çözücü (pF/nF/µF)</div>
+                <input type="text" id="capInput" placeholder="Örn: 104 veya 104J" oninput="capHesapla()">
+                <div class="result-box" id="capSonuc">100 nF (0.1 µF / 100,000 pF)</div>
             </div>
         </div>
     </div>
 
-    <!-- 3. KART PROJELERİ GÖRÜNÜMÜ -->
+    <!-- 3. WORKSPACE -->
     <div id="workspaceView" class="view-section">
         <div class="workspace-view">
             <div class="sidebar">
@@ -455,13 +233,9 @@
 
             <div class="content">
                 <h1 id="pBaslik" class="project-title">Yükleniyor...</h1>
-                <div class="badges-row">
-                    <span class="badge" id="pSure">⏱️ 10 Dk</span>
-                    <span class="badge" id="pZorluk">🟢 Başlangıç</span>
-                    <span class="badge" id="pKategoriBadge">Sensör</span>
-                </div>
+                <div style="margin-bottom:15px; color:var(--text-sub); font-size:13px;" id="pMeta"></div>
 
-                <div class="section-label">📦 Gereken Malzemeler</div>
+                <div style="font-weight:bold; color:var(--primary); margin-bottom:10px;">📦 Gereken Malzemeler & Ürünler</div>
                 <div class="materials-grid" id="pMalzemeler"></div>
 
                 <div class="card-tabs">
@@ -471,24 +245,20 @@
                     <button class="card-btn" id="tab-esp8266" onclick="kartSec('esp8266')">📶 ESP8266</button>
                 </div>
 
-                <div class="section-label">🔌 Pin Bağlantı Tablosu</div>
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr><th>Bileşen / Pin</th><th>Kart Bağlantısı</th></tr>
-                        </thead>
-                        <tbody id="pTablo"></tbody>
-                    </table>
-                </div>
+                <div style="font-weight:bold; color:var(--primary); margin:15px 0 8px 0;">🔌 Pin Bağlantı Tablosu</div>
+                <table>
+                    <thead><tr><th>Bileşen / Pin</th><th>Kart Bağlantısı</th></tr></thead>
+                    <tbody id="pTablo"></tbody>
+                </table>
 
-                <div class="section-label">📚 Kütüphaneler</div>
-                <p id="pKutuphane" style="color: var(--text-sub); margin: 0; font-size: 14px;"></p>
+                <div style="font-weight:bold; color:var(--primary); margin:20px 0 5px 0;">📚 Kütüphaneler</div>
+                <p id="pKutuphane" style="color:var(--text-sub); margin:0; font-size:13.5px;"></p>
 
-                <div class="section-label">💻 C++ Kaynak Kodu</div>
+                <div style="font-weight:bold; color:var(--primary); margin:20px 0 8px 0;">💻 C++ Kaynak Kodu</div>
                 <div class="code-container">
                     <div class="code-actions">
                         <button class="btn-action" onclick="koduKopyala()">📋 Kopyala</button>
-                        <button class="btn-action btn-download" onclick="inoIndir()">⬇️ .ino İndir</button>
+                        <button class="btn-action" style="background:rgba(0,151,157,0.2);color:var(--primary-hover);border-color:var(--primary);" onclick="inoIndir()">⬇️ .ino İndir</button>
                     </div>
                     <pre><code id="pKod" class="language-clike"></code></pre>
                 </div>
@@ -508,14 +278,12 @@
     let aktifKart = 'uno';
     let aktifProjeId = '';
 
-    // Ekran Değiştirici
     function ekranDegistir(ekranAdi) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
         if (ekranAdi === 'hub') document.getElementById('hubView').classList.add('active');
         if (ekranAdi === 'tools') {
             document.getElementById('toolsView').classList.add('active');
-            dipHesapla();
-            smdHesapla();
+            dipHesapla(); smdHesapla(); capHesapla();
         }
         if (ekranAdi === 'workspace') document.getElementById('workspaceView').classList.add('active');
     }
@@ -527,12 +295,15 @@
     }
 
     window.onload = async () => {
-        const res = await fetch('/projeler');
-        tumProjeler = await res.json();
-        listeyiCiz(tumProjeler);
-        if (tumProjeler.length > 0) projeYukle(tumProjeler[0].id);
-        dipHesapla();
-        smdHesapla();
+        try {
+            const res = await fetch('/projeler');
+            tumProjeler = await res.json();
+            listeyiCiz(tumProjeler);
+            if (tumProjeler.length > 0) projeYukle(tumProjeler[0].id);
+        } catch (e) {
+            console.error("Projeler alinamadi:", e);
+        }
+        dipHesapla(); smdHesapla(); capHesapla();
     };
 
     function listeyiCiz(projeler) {
@@ -566,27 +337,32 @@
         const secili = document.getElementById(`item-${id}`);
         if (secili) secili.classList.add('active');
 
-        const res = await fetch(`/proje/${id}`);
-        const data = await res.json();
+        try {
+            const res = await fetch(`/proje/${id}`);
+            const data = await res.json();
 
-        if (data.durum === 'basarili') {
-            aktifProjeVerisi = data.veri;
-            document.getElementById('pBaslik').innerText = data.veri.baslik;
-            document.getElementById('pKutuphane').innerText = data.veri.kutuphaneler;
-            document.getElementById('pSure').innerText = '⏱️ ' + (data.veri.sure || '10 Dk');
-            document.getElementById('pZorluk').innerText = '🟢 ' + (data.veri.zorluk || 'Başlangıç');
-            document.getElementById('pKategoriBadge').innerText = data.veri.kategori;
+            if (data.durum === 'basarili' && data.veri) {
+                aktifProjeVerisi = data.veri;
+                document.getElementById('pBaslik').innerText = data.veri.baslik || 'Proje Detayı';
+                document.getElementById('pMeta').innerText = `⏱️ ${data.veri.sure || '10 Dk'} | 🟢 ${data.veri.zorluk || 'Başlangıç'} | 📁 ${data.veri.kategori || 'Genel'}`;
 
-            const matDiv = document.getElementById('pMalzemeler');
-            matDiv.innerHTML = '';
-            (data.veri.malzemeler || []).forEach(m => {
-                const box = document.createElement('div');
-                box.className = 'material-item';
-                box.innerHTML = `<span class="material-qty">${m.adet}</span> <span>${m.isim}</span>`;
-                matDiv.appendChild(box);
-            });
+                const matDiv = document.getElementById('pMalzemeler');
+                matDiv.innerHTML = '';
+                (data.veri.malzemeler || []).forEach(m => {
+                    const box = document.createElement('div');
+                    box.className = 'material-item';
+                    let linkBtn = '';
+                    if (m.link && m.link.startsWith('http')) {
+                        linkBtn = `<a href="${m.link}" target="_blank" class="btn-buy">🛒 Satın Al</a>`;
+                    }
+                    box.innerHTML = `<div><span class="material-qty">${m.adet || '1x'}</span><span>${m.isim}</span></div>${linkBtn}`;
+                    matDiv.appendChild(box);
+                });
 
-            kartGoster(aktifKart);
+                kartGoster(aktifKart);
+            }
+        } catch (e) {
+            console.error("Proje yükleme hatasi:", e);
         }
     }
 
@@ -600,18 +376,20 @@
 
     function kartGoster(kartAdi) {
         if (!aktifProjeVerisi || !aktifProjeVerisi.kartlar) return;
-        const kartBilgisi = aktifProjeVerisi.kartlar[kartAdi] || aktifProjeVerisi.kartlar['uno'];
+        const kartBilgisi = aktifProjeVerisi.kartlar[kartAdi] || aktifProjeVerisi.kartlar['uno'] || {};
+
+        document.getElementById('pKutuphane').innerText = kartBilgisi.kutuphaneler || 'Harici kütüphane gerekmez.';
 
         const tbody = document.getElementById('pTablo');
         tbody.innerHTML = '';
-        kartBilgisi.baglanti.forEach(b => {
+        (kartBilgisi.baglanti || []).forEach(b => {
             const tr = document.createElement('tr');
             tr.innerHTML = `<td>${b.bilesen}</td><td class="pin-cell">${b.pin}</td>`;
             tbody.appendChild(tr);
         });
 
         const kodEl = document.getElementById('pKod');
-        kodEl.textContent = kartBilgisi.kod;
+        kodEl.textContent = kartBilgisi.kod || '// Kod hazirlaniyor...';
         Prism.highlightElement(kodEl);
     }
 
@@ -621,92 +399,73 @@
     });
 
     function koduKopyala() {
-        navigator.clipboard.writeText(document.getElementById('pKod').textContent).then(() => {
-            alert('Kod panoya kopyalandı!');
-        });
+        navigator.clipboard.writeText(document.getElementById('pKod').textContent).then(() => alert('Kod panoya kopyalandı!'));
     }
 
     function inoIndir() {
         const kodMetni = document.getElementById('pKod').textContent;
-        const dosyaAdi = `${aktifProjeId}_${aktifKart}.ino`;
         const blob = new Blob([kodMetni], { type: 'text/plain;charset=utf-8' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = dosyaAdi;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        link.download = `${aktifProjeId}_${aktifKart}.ino`;
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
-    // ==========================================
-    // DIP DİRENÇ HESAPLAMA MOTORU
-    // ==========================================
+    // DIP HESAPLA
     function dipHesapla() {
         const b1 = document.getElementById('dip-b1');
         const b2 = document.getElementById('dip-b2');
         const b3 = document.getElementById('dip-b3');
         const b4 = document.getElementById('dip-b4');
 
-        // Renkleri sanal dirence yansıt
         document.getElementById('band1-view').style.background = b1.options[b1.selectedIndex].dataset.color;
         document.getElementById('band2-view').style.background = b2.options[b2.selectedIndex].dataset.color;
         document.getElementById('band3-view').style.background = b3.options[b3.selectedIndex].dataset.color;
         document.getElementById('band4-view').style.background = b4.options[b4.selectedIndex].dataset.color;
 
         const val = parseFloat(((parseInt(b1.value) * 10 + parseInt(b2.value)) * parseFloat(b3.value)).toFixed(2));
-        const tol = b4.value;
-
-        if (val === 0) {
-            document.getElementById('dipSonuc').innerText = `0 Ω (Jumper / Köprü Direnç)`;
-            return;
-        }
+        if (val === 0) { document.getElementById('dipSonuc').innerText = '0 Ω (Jumper Direnç)'; return; }
 
         let formatted = val + ' Ω';
         if (val >= 1000000) formatted = (val / 1000000).toFixed(val % 1000000 === 0 ? 0 : 2) + ' MΩ';
         else if (val >= 1000) formatted = (val / 1000).toFixed(val % 1000 === 0 ? 0 : 1) + ' kΩ';
-
-        document.getElementById('dipSonuc').innerText = `${formatted} ${tol}`;
+        document.getElementById('dipSonuc').innerText = `${formatted} ${b4.value}`;
     }
 
-    // ==========================================
-    // SMD DİRENÇ ÇÖZÜCÜ MOTORU
-    // ==========================================
+    // SMD HESAPLA
     function smdHesapla() {
-        let code = document.getElementById('smdInput').value.trim().toUpperCase();
-        if (!code) code = "110";
-
+        let code = (document.getElementById('smdInput').value.trim() || "110").toUpperCase();
         const out = document.getElementById('smdSonuc');
-
         if (code.includes('R')) {
-            let replaced = code.replace('R', '.');
-            if (replaced.startsWith('.')) replaced = '0' + replaced;
-            out.innerText = replaced + ' Ω';
-            return;
+            let r = code.replace('R', '.');
+            out.innerText = (r.startsWith('.') ? '0' + r : r) + ' Ω'; return;
         }
-
         if (/^\d{3}$/.test(code)) {
-            const significant = parseInt(code.substring(0, 2));
-            const multiplier = Math.pow(10, parseInt(code.charAt(2)));
-            const val = significant * multiplier;
-            out.innerText = formatOhm(val);
-            return;
+            let val = parseInt(code.substring(0, 2)) * Math.pow(10, parseInt(code[2]));
+            out.innerText = val >= 1000 ? (val/1000) + ' kΩ (±%5)' : val + ' Ω (±%5)'; return;
         }
-
         if (/^\d{4}$/.test(code)) {
-            const significant = parseInt(code.substring(0, 3));
-            const multiplier = Math.pow(10, parseInt(code.charAt(3)));
-            const val = significant * multiplier;
-            out.innerText = formatOhm(val);
-            return;
+            let val = parseInt(code.substring(0, 3)) * Math.pow(10, parseInt(code[3]));
+            out.innerText = val >= 1000 ? (val/1000) + ' kΩ (±%1)' : val + ' Ω (±%1)'; return;
         }
-
-        out.innerText = 'Geçersiz Kod (Örn: 110, 472, 4R7, 1002)';
+        out.innerText = 'Geçersiz Kod (110, 4R7, 1002)';
     }
 
-    function formatOhm(val) {
-        if (val >= 1000000) return (val / 1000000) + ' MΩ (±%5)';
-        if (val >= 1000) return (val / 1000) + ' kΩ (±%5)';
-        return val + ' Ω (±%5)';
+    // KONDANSATÖR HESAPLA
+    function capHesapla() {
+        let raw = (document.getElementById('capInput').value.trim() || "104").toUpperCase();
+        const out = document.getElementById('capSonuc');
+        let tol = "";
+        const tMap = {'J':'±%5', 'K':'±%10', 'M':'±%20'};
+        if (tMap[raw.slice(-1)]) { tol = ` [${tMap[raw.slice(-1)]}]`; raw = raw.slice(0, -1); }
+
+        if (/^\d{3}$/.test(raw)) {
+            let pf = parseInt(raw.substring(0, 2)) * Math.pow(10, parseInt(raw[2]));
+            let nf = pf / 1000;
+            let uf = pf / 1000000;
+            out.innerText = `${nf} nF (${uf} µF / ${pf.toLocaleString()} pF)${tol}`; return;
+        }
+        out.innerText = 'Geçersiz Kod (104, 223J, 471K)';
     }
 </script>
 

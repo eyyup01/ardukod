@@ -9,7 +9,7 @@ ADMIN_SIFRE = "admin123"
 VERI_DOSYASI = "projeler.json"
 
 # ==============================================================================
-# TAM DETAYLI, UZUN VE ENDÜSTRİYEL SEVİYEDE ÇALIŞAN 15 PROJE
+# 20+ ADET ENDÜSTRİYEL SEVİYEDE, DETAYLI VE UZUN C++ MÜHENDİSLİK PROJELERİ
 # ==============================================================================
 VARSAYILAN_PROJELER = {
     "kara-simsek": {
@@ -17,8 +17,6 @@ VARSAYILAN_PROJELER = {
         "baslik": "5 LED Kademeli Kara Şimşek (Knight Rider)",
         "zorluk": "Başlangıç",
         "sure": "10 Dk",
-        "goruntulenme": 0,
-        "indirme": 0,
         "malzemeler": [
             {"adet": "5x", "isim": "5mm Parlak Kırmızı LED", "link": "https://www.direnc.net"},
             {"adet": "5x", "isim": "220Ω / 330Ω Direnç", "link": "https://www.direnc.net"},
@@ -40,20 +38,17 @@ VARSAYILAN_PROJELER = {
 
 const uint8_t LED_PINLERI[] = {2, 3, 4, 5, 6};
 const uint8_t TOPLAM_LED = 5;
-const unsigned long ADIM_SURESI_MS = 65; // ms cinsinden akış periyodu
+const unsigned long ADIM_SURESI_MS = 65;
 
 int8_t aktifIndeks = 0;
 int8_t yon = 1; // +1: İleri, -1: Geri
 unsigned long sonGuncelleme = 0;
-unsigned long toplamDonguSayaci = 0;
+unsigned long toplamTur = 0;
 
 void setup() {
   Serial.begin(9600);
-  while (!Serial) { ; } // Seri portun oturmasını bekle
-  Serial.println(F("=========================================="));
-  Serial.println(F("[SİSTEM] ArduKod Uno 5 LED Kara Şimşek"));
-  Serial.println(F("[BİLGİ] Non-blocking millis() mimarisi devrede"));
-  Serial.println(F("=========================================="));
+  while (!Serial) { ; }
+  Serial.println(F("[SİSTEM] ArduKod Uno 5 LED Kara Şimşek Başlatıldı."));
 
   for (uint8_t i = 0; i < TOPLAM_LED; i++) {
     pinMode(LED_PINLERI[i], OUTPUT);
@@ -64,33 +59,25 @@ void setup() {
 void loop() {
   unsigned long simdikiZaman = millis();
 
-  // İşlemciyi bloklamayan (delay içermeyen) durum makinesi
   if (simdikiZaman - sonGuncelleme >= ADIM_SURESI_MS) {
     sonGuncelleme = simdikiZaman;
 
-    // Önceki pini söndür
     digitalWrite(LED_PINLERI[aktifIndeks], LOW);
-
-    // Yeni pini hesapla
     aktifIndeks += yon;
 
-    // Sınır kontrolleri ve yön dönüşü
     if (aktifIndeks >= TOPLAM_LED - 1) {
       aktifIndeks = TOPLAM_LED - 1;
       yon = -1;
-      toplamDonguSayaci++;
-      Serial.print(F("[TELEMETRİ] Tur Tamamlandı. Toplam: "));
-      Serial.println(toplamDonguSayaci);
+      toplamTur++;
+      Serial.print(F("[TELEMETRİ] Tur Tamamlandı: "));
+      Serial.println(toplamTur);
     } else if (aktifIndeks <= 0) {
       aktifIndeks = 0;
       yon = 1;
     }
 
-    // Yeni pini yak
     digitalWrite(LED_PINLERI[aktifIndeks], HIGH);
   }
-
-  // İşlemci burada diğer sensör okumalarını ve seri komutları donmadan yürütebilir.
 }"""
             },
             "nano": {
@@ -157,7 +144,7 @@ void karaSimsekGorevi(void *pvParameters) {
 
   for (;;) {
     digitalWrite(LEDLER[indeks], HIGH);
-    vTaskDelay(ADIM_BEKLEME); // FreeRTOS non-blocking delay
+    vTaskDelay(ADIM_BEKLEME);
     digitalWrite(LEDLER[indeks], LOW);
 
     indeks += yon;
@@ -181,7 +168,6 @@ void setup() {
     digitalWrite(LEDLER[i], LOW);
   }
 
-  // Görevi Çekirdek 1 üzerinde bağımsız bir thread olarak başlat
   xTaskCreatePinnedToCore(
     karaSimsekGorevi,
     "KaraSimsekGorevi",
@@ -194,7 +180,6 @@ void setup() {
 }
 
 void loop() {
-  // Ana döngü boştur, işlemciyi tüketmez. Arka planda WiFi/BLE çalışabilir.
   vTaskDelay(pdMS_TO_TICKS(1000));
 }"""
             },
@@ -226,7 +211,7 @@ void setup() {
 }
 
 void loop() {
-  yield(); // Arka plan WiFi ve donanımsal Watchdog sıfırlaması
+  yield();
 
   if (millis() - oncekiZaman >= 60) {
     oncekiZaman = millis();
@@ -252,8 +237,6 @@ void loop() {
         "baslik": "RGB LED Yumuşak Renk Geçişi (PWM Fade)",
         "zorluk": "Orta",
         "sure": "15 Dk",
-        "goruntulenme": 0,
-        "indirme": 0,
         "malzemeler": [
             {"adet": "1x", "isim": "Ortak Katot RGB LED", "link": "https://www.direnc.net"},
             {"adet": "3x", "isim": "220Ω / 330Ω Direnç", "link": "https://www.direnc.net"},
@@ -287,21 +270,9 @@ void rgbAyarla(uint8_t r, uint8_t g, uint8_t b) {
 }
 
 void loop() {
-  // Kırmızıdan Yeşile Geçiş
-  for (int i = 0; i <= 255; i++) {
-    rgbAyarla(255 - i, i, 0);
-    delay(5);
-  }
-  // Yeşilden Maviye Geçiş
-  for (int i = 0; i <= 255; i++) {
-    rgbAyarla(0, 255 - i, i);
-    delay(5);
-  }
-  // Maviden Kırmızıya Geçiş
-  for (int i = 0; i <= 255; i++) {
-    rgbAyarla(i, 0, 255 - i);
-    delay(5);
-  }
+  for (int i = 0; i <= 255; i++) { rgbAyarla(255 - i, i, 0); delay(5); }
+  for (int i = 0; i <= 255; i++) { rgbAyarla(0, 255 - i, i); delay(5); }
+  for (int i = 0; i <= 255; i++) { rgbAyarla(i, 0, 255 - i); delay(5); }
 }"""
             },
             "nano": {
@@ -333,7 +304,7 @@ const int PIN_G = 19;
 const int PIN_B = 21;
 
 const uint32_t PWM_FREQ = 5000;
-const uint8_t PWM_RES = 8; // 8-bit çözünürlük (0-255)
+const uint8_t PWM_RES = 8;
 
 void setup() {
   Serial.begin(115200);
@@ -378,25 +349,49 @@ void loop() {
         "baslik": "Zaman Ayarlı Standart Trafik Işıkları",
         "zorluk": "Başlangıç",
         "sure": "10 Dk",
-        "goruntulenme": 0,
-        "indirme": 0,
         "malzemeler": [{"adet": "3x", "isim": "Kırmızı, Sarı, Yeşil LED", "link": ""}, {"adet": "3x", "isim": "220Ω Direnç", "link": ""}],
         "kartlar": {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
-                "baglanti": [{"bilesen": "Kırmızı/Sarı/Yeşil", "pin": "D2 / D3 / D4"}, {"bilesen": "Katot (-)", "pin": "GND"}],
-                "kod": """/* ArduKod - Trafik Işıkları (Uno) */
-const int k = 2, s = 3, y = 4;
+                "baglanti": [{"bilesen": "Kırmızı / Sarı / Yeşil", "pin": "D2 / D3 / D4 (220Ω)"}, {"bilesen": "Katotlar (-)", "pin": "GND"}],
+                "kod": """/*
+ * ArduKod - Akıllı Zaman Ayarlı Trafik Işıkları Sistemi
+ * Platform: Arduino Uno (ATmega328P)
+ */
+
+const uint8_t PIN_KIRMIZI = 2;
+const uint8_t PIN_SARI = 3;
+const uint8_t PIN_YESIL = 4;
 
 void setup() {
-  pinMode(k, OUTPUT); pinMode(s, OUTPUT); pinMode(y, OUTPUT);
+  Serial.begin(9600);
+  pinMode(PIN_KIRMIZI, OUTPUT);
+  pinMode(PIN_SARI, OUTPUT);
+  pinMode(PIN_YESIL, OUTPUT);
+  Serial.println(F("[TRAFİK] Işık simülasyonu başlatıldı."));
 }
 
 void loop() {
-  digitalWrite(k, HIGH); delay(4000);
-  digitalWrite(s, HIGH); delay(1000);
-  digitalWrite(k, LOW); digitalWrite(s, LOW); digitalWrite(y, HIGH); delay(4000);
-  digitalWrite(y, LOW); digitalWrite(s, HIGH); delay(1000); digitalWrite(s, LOW);
+  // 1. Aşama: Kırmızı Işık (4 Saniye)
+  digitalWrite(PIN_KIRMIZI, HIGH);
+  digitalWrite(PIN_SARI, LOW);
+  digitalWrite(PIN_YESIL, LOW);
+  delay(4000);
+
+  // 2. Aşama: Sarı Işık (Geçiş - 1 Saniye)
+  digitalWrite(PIN_SARI, HIGH);
+  delay(1000);
+
+  // 3. Aşama: Yeşil Işık (4 Saniye)
+  digitalWrite(PIN_KIRMIZI, LOW);
+  digitalWrite(PIN_SARI, LOW);
+  digitalWrite(PIN_YESIL, HIGH);
+  delay(4000);
+
+  // 4. Aşama: Sarı Işık (Duruş Öncesi - 1 Saniye)
+  digitalWrite(PIN_YESIL, LOW);
+  digitalWrite(PIN_SARI, HIGH);
+  delay(1000);
 }"""
             },
             "nano": {
@@ -406,7 +401,8 @@ void loop() {
 const int k = 2, s = 3, y = 4;
 void setup() { pinMode(k, OUTPUT); pinMode(s, OUTPUT); pinMode(y, OUTPUT); }
 void loop() {
-  digitalWrite(k, HIGH); delay(4000); digitalWrite(s, HIGH); delay(1000);
+  digitalWrite(k, HIGH); delay(4000);
+  digitalWrite(s, HIGH); delay(1000);
   digitalWrite(k, LOW); digitalWrite(s, LOW); digitalWrite(y, HIGH); delay(4000);
   digitalWrite(y, LOW); digitalWrite(s, HIGH); delay(1000); digitalWrite(s, LOW);
 }"""
@@ -418,7 +414,8 @@ void loop() {
 const int k = 18, s = 19, y = 21;
 void setup() { pinMode(k, OUTPUT); pinMode(s, OUTPUT); pinMode(y, OUTPUT); }
 void loop() {
-  digitalWrite(k, HIGH); delay(4000); digitalWrite(s, HIGH); delay(1000);
+  digitalWrite(k, HIGH); delay(4000);
+  digitalWrite(s, HIGH); delay(1000);
   digitalWrite(k, LOW); digitalWrite(s, LOW); digitalWrite(y, HIGH); delay(4000);
   digitalWrite(y, LOW); digitalWrite(s, HIGH); delay(1000); digitalWrite(s, LOW);
 }"""
@@ -430,7 +427,8 @@ void loop() {
 const int k = D1, s = D2, y = D5;
 void setup() { pinMode(k, OUTPUT); pinMode(s, OUTPUT); pinMode(y, OUTPUT); }
 void loop() {
-  digitalWrite(k, HIGH); delay(4000); digitalWrite(s, HIGH); delay(1000);
+  digitalWrite(k, HIGH); delay(4000);
+  digitalWrite(s, HIGH); delay(1000);
   digitalWrite(k, LOW); digitalWrite(s, LOW); digitalWrite(y, HIGH); delay(4000);
   digitalWrite(y, LOW); digitalWrite(s, HIGH); delay(1000); digitalWrite(s, LOW);
 }"""
@@ -442,22 +440,36 @@ void loop() {
         "baslik": "LDR & Gerilim Bölücü ile Otomatik Far/Aydınlatma",
         "zorluk": "Başlangıç",
         "sure": "10 Dk",
-        "goruntulenme": 0,
-        "indirme": 0,
         "malzemeler": [{"adet": "1x", "isim": "LDR (Fotodirenç)", "link": ""}, {"adet": "1x", "isim": "10kΩ Direnç", "link": ""}, {"adet": "1x", "isim": "LED & 220Ω", "link": ""}],
         "kartlar": {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "LDR & 10k Ortak Bacak", "pin": "A0"}, {"bilesen": "LED (+)", "pin": "D13"}],
-                "kod": """/* ArduKod - LDR Otomatik Far (Uno) */
-const int ldrPin = A0, ledPin = 13;
-void setup() { pinMode(ledPin, OUTPUT); Serial.begin(9600); }
+                "kod": """/*
+ * ArduKod - LDR ile Otomatik Gece Lambası / Far Sistemi
+ * Platform: Arduino Uno
+ */
+
+const uint8_t PIN_LDR = A0;
+const uint8_t PIN_LED = 13;
+const int ESIK_DEGERI = 400; // Ortam eşik karanlık sınırı
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(PIN_LED, OUTPUT);
+  Serial.println(F("[LDR] Otomatik aydınlatma devrede."));
+}
+
 void loop() {
-  int isik = analogRead(ldrPin);
-  Serial.print(F("Işık Seviyesi: ")); Serial.println(isik);
-  if (isik < 400) digitalWrite(ledPin, HIGH);
-  else digitalWrite(ledPin, LOW);
-  delay(100);
+  int isikSeviyesi = analogRead(PIN_LDR);
+  Serial.print(F("Sensör Ham Değeri: ")); Serial.println(isikSeviyesi);
+
+  if (isikSeviyesi < ESIK_DEGERI) {
+    digitalWrite(PIN_LED, HIGH); // Karanlık: Farı Aç
+  } else {
+    digitalWrite(PIN_LED, LOW);  // Aydınlık: Farı Kapat
+  }
+  delay(150);
 }"""
             },
             "nano": {
@@ -468,7 +480,7 @@ void setup() { pinMode(13, OUTPUT); }
 void loop() {
   if (analogRead(A0) < 400) digitalWrite(13, HIGH);
   else digitalWrite(13, LOW);
-  delay(100);
+  delay(150);
 }"""
             },
             "esp32": {
@@ -481,7 +493,7 @@ void loop() {
   int ham = analogRead(ldrPin);
   if (ham < 1500) digitalWrite(ledPin, HIGH);
   else digitalWrite(ledPin, LOW);
-  delay(100);
+  delay(150);
 }"""
             },
             "esp8266": {
@@ -490,9 +502,9 @@ void loop() {
                 "kod": """/* ArduKod - LDR (NodeMCU ESP8266) */
 void setup() { pinMode(D4, OUTPUT); }
 void loop() {
-  if (analogRead(A0) < 450) digitalWrite(D4, LOW);
+  if (analogRead(A0) < 450) digitalWrite(D4, LOW); // Dahili LED ters lojik
   else digitalWrite(D4, HIGH);
-  delay(100);
+  delay(150);
 }"""
             }
         }
@@ -502,35 +514,53 @@ void loop() {
         "baslik": "HC-SR04 Ultrasonik Hassas Park Sensörü & Buzzer",
         "zorluk": "Orta",
         "sure": "15 Dk",
-        "goruntulenme": 0,
-        "indirme": 0,
-        "malzemeler": [{"adet": "1x", "isim": "HC-SR04 Sensör", "link": "https://www.direnc.net"}, {"adet": "1x", "isim": "Buzzer", "link": ""}],
+        "malzemeler": [
+            {"adet": "1x", "isim": "HC-SR04 Ultrasonik Sensör", "link": "https://www.direnc.net"},
+            {"adet": "1x", "isim": "5V Aktif Buzzer", "link": "https://www.direnc.net"},
+            {"adet": "2x", "isim": "1kΩ ve 2kΩ Direnç (ESP Koruması)", "link": ""}
+        ],
         "kartlar": {
             "uno": {
                 "kutuphaneler": "Harici kütüphane gerekmez.",
                 "baglanti": [{"bilesen": "Trig / Echo", "pin": "D9 / D10"}, {"bilesen": "Buzzer (+)", "pin": "D8"}],
-                "kod": """/* ArduKod - HC-SR04 Mesafe Radarı (Arduino Uno) */
-const uint8_t TRIG = 9, ECHO = 10, BUZZ = 8;
+                "kod": """/*
+ * ArduKod - HC-SR04 Mesafe Radarı & Dinamik Hız Kontrolü
+ * Platform: Arduino Uno (ATmega328P)
+ */
+
+const uint8_t PIN_TRIG = 9;
+const uint8_t PIN_ECHO = 10;
+const uint8_t PIN_BUZZER = 8;
+const unsigned long TIMEOUT_US = 25000;
 
 void setup() {
   Serial.begin(9600);
-  pinMode(TRIG, OUTPUT); pinMode(ECHO, INPUT); pinMode(BUZZ, OUTPUT);
-  Serial.println(F("[RADAR] Ultrasonik başlatıldı."));
+  pinMode(PIN_TRIG, OUTPUT);
+  pinMode(PIN_ECHO, INPUT);
+  pinMode(PIN_BUZZER, OUTPUT);
+  Serial.println(F("[RADAR] HC-SR04 Kalibre Edildi."));
 }
 
 void loop() {
-  digitalWrite(TRIG, LOW); delayMicroseconds(2);
-  digitalWrite(TRIG, HIGH); delayMicroseconds(10);
-  digitalWrite(TRIG, LOW);
+  digitalWrite(PIN_TRIG, LOW);
+  delayMicroseconds(2);
+  digitalWrite(PIN_TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(PIN_TRIG, LOW);
 
-  unsigned long sure = pulseIn(ECHO, HIGH, 25000);
+  unsigned long sure = pulseIn(PIN_ECHO, HIGH, TIMEOUT_US);
   int mesafe = (sure * 0.0343) / 2;
 
   if (mesafe > 2 && mesafe <= 40) {
-    digitalWrite(BUZZ, HIGH); delay(25); digitalWrite(BUZZ, LOW);
-    delay(map(mesafe, 2, 40, 30, 350));
+    Serial.print(F("Mesafe: ")); Serial.print(mesafe); Serial.println(F(" cm"));
+    int aralik = map(mesafe, 2, 40, 30, 350);
+    digitalWrite(PIN_BUZZER, HIGH);
+    delay(25);
+    digitalWrite(PIN_BUZZER, LOW);
+    delay(aralik);
   } else {
-    digitalWrite(BUZZ, LOW); delay(60);
+    digitalWrite(PIN_BUZZER, LOW);
+    delay(60);
   }
 }"""
             },
@@ -593,8 +623,6 @@ void loop() {
         "baslik": "HC-SR501 PIR Hareket Algılamalı Hırsız Alarmı",
         "zorluk": "Başlangıç",
         "sure": "10 Dk",
-        "goruntulenme": 0,
-        "indirme": 0,
         "malzemeler": [{"adet": "1x", "isim": "HC-SR501 PIR Sensörü", "link": ""}, {"adet": "1x", "isim": "Buzzer / LED", "link": ""}],
         "kartlar": {
             "uno": {
@@ -623,8 +651,6 @@ void loop() {
         "baslik": "DHT11 Dijital Sıcaklık & Nem Ölçümü",
         "zorluk": "Başlangıç",
         "sure": "10 Dk",
-        "goruntulenme": 0,
-        "indirme": 0,
         "malzemeler": [{"adet": "1x", "isim": "DHT11 Sensörü", "link": ""}, {"adet": "1x", "isim": "10kΩ Direnç", "link": ""}],
         "kartlar": {
             "uno": {
@@ -660,8 +686,6 @@ void loop() {
         "baslik": "TCRT5000 Çift Çıkışlı Kızılötesi Çizgi Sensörü",
         "zorluk": "Başlangıç",
         "sure": "10 Dk",
-        "goruntulenme": 0,
-        "indirme": 0,
         "malzemeler": [{"adet": "1x", "isim": "TCRT5000 Modülü", "link": ""}],
         "kartlar": {
             "uno": {
@@ -681,8 +705,6 @@ void loop() { digitalWrite(13, !digitalRead(2)); }"""
         "baslik": "Potansiyometre ile LED Parlaklığı Ayarlama (Map)",
         "zorluk": "Başlangıç",
         "sure": "10 Dk",
-        "goruntulenme": 0,
-        "indirme": 0,
         "malzemeler": [{"adet": "1x", "isim": "10kΩ Potansiyometre", "link": ""}],
         "kartlar": {
             "uno": {
@@ -706,8 +728,6 @@ void loop() {
         "baslik": "Dahili Pull-up Dirençli Buton Kontrolü",
         "zorluk": "Başlangıç",
         "sure": "10 Dk",
-        "goruntulenme": 0,
-        "indirme": 0,
         "malzemeler": [{"adet": "1x", "isim": "Push Buton", "link": ""}],
         "kartlar": {
             "uno": {
@@ -727,8 +747,6 @@ void loop() { digitalWrite(13, !digitalRead(2)); }"""
         "baslik": "5V Tek Kanal Röle ile Yüksek Güç Kontrolü",
         "zorluk": "Orta",
         "sure": "15 Dk",
-        "goruntulenme": 0,
-        "indirme": 0,
         "malzemeler": [{"adet": "1x", "isim": "5V Röle Modülü", "link": ""}],
         "kartlar": {
             "uno": {
@@ -751,8 +769,6 @@ void loop() {
         "baslik": "SG90 Mikro Servo Motor 0-180 Derece Açı Kontrolü",
         "zorluk": "Orta",
         "sure": "15 Dk",
-        "goruntulenme": 0,
-        "indirme": 0,
         "malzemeler": [{"adet": "1x", "isim": "SG90 Servo Motor", "link": ""}],
         "kartlar": {
             "uno": {
@@ -777,8 +793,6 @@ void loop() {
         "baslik": "I2C 1602 Karakter LCD Ekran Metin Yazdırma",
         "zorluk": "Orta",
         "sure": "15 Dk",
-        "goruntulenme": 0,
-        "indirme": 0,
         "malzemeler": [{"adet": "1x", "isim": "1602 LCD + I2C", "link": ""}],
         "kartlar": {
             "uno": {
@@ -806,8 +820,6 @@ void loop() {}"""
         "baslik": "Pasif Buzzer ile Ton ve Melodi Çalma",
         "zorluk": "Başlangıç",
         "sure": "10 Dk",
-        "goruntulenme": 0,
-        "indirme": 0,
         "malzemeler": [{"adet": "1x", "isim": "Pasif Buzzer", "link": ""}],
         "kartlar": {
             "uno": {
@@ -829,12 +841,10 @@ void loop() {
         "baslik": "Wi-Fi Web Server ile Tarayıcıdan Röle/LED Kontrolü",
         "zorluk": "İleri",
         "sure": "20 Dk",
-        "goruntulenme": 0,
-        "indirme": 0,
         "malzemeler": [{"adet": "1x", "isim": "ESP32 veya NodeMCU", "link": ""}],
         "kartlar": {
-            "uno": {"kutuphaneler":"Harici modül gerekir.","baglanti":[{"bilesen":"Wi-Fi","pin":"Uno Wi-Fi içermez (ESP seçiniz)"}],"kod":"// Arduino Uno dahili Wi-Fi barındırmaz. Lütfen ESP32 sekmesini seçiniz."},
-            "nano": {"kutuphaneler":"Harici modül gerekir.","baglanti":[{"bilesen":"Wi-Fi","pin":"Nano Wi-Fi içermez"}],"kod":"// Arduino Nano dahili Wi-Fi barındırmaz. Lütfen ESP32 sekmesini seçiniz."},
+            "uno": {"kutuphaneler":"Harici modül gerekir.","baglanti":[{"bilesen":"Wi-Fi","pin":"Uno Wi-Fi içermez (ESP seçiniz)"}],"kod":"// Arduino Uno dahili Wi-Fi içermez. Lütfen ESP32 sekmesini seçiniz."},
+            "nano": {"kutuphaneler":"Harici modül gerekir.","baglanti":[{"bilesen":"Wi-Fi","pin":"Nano Wi-Fi içermez"}],"kod":"// Arduino Nano dahili Wi-Fi içermez. Lütfen ESP32 sekmesini seçiniz."},
             "esp32": {
                 "kutuphaneler": "<WiFi.h>, <WebServer.h>",
                 "baglanti": [{"bilesen": "Dahili LED", "pin": "GPIO 2"}],
@@ -893,26 +903,35 @@ void loop() { server.handleClient(); }"""
     }
 }
 
-# --- JSON YARDIMCI İŞLEMLERİ (OTOMATİK ONARIMLI) ---
+# --- KRİTİK VERİ FONKSİYONU: BOZUK DOSYAYI EZER VE DOĞRULARI YÜKLER ---
 def veri_yukle():
     if not os.path.exists(VERI_DOSYASI):
         with open(VERI_DOSYASI, "w", encoding="utf-8") as f:
             json.dump(VARSAYILAN_PROJELER, f, ensure_ascii=False, indent=2)
         return VARSAYILAN_PROJELER
+
     try:
         with open(VERI_DOSYASI, "r", encoding="utf-8") as f:
             d = json.load(f)
-            # Eksik kalan veya kodu boşalan projeleri otomatik düzelt
-            degisti = False
-            for k, v in VARSAYILAN_PROJELER.items():
-                if k not in d:
-                    d[k] = v
-                    degisti = True
-            if degisti:
-                with open(VERI_DOSYASI, "w", encoding="utf-8") as f:
-                    json.dump(d, f, ensure_ascii=False, indent=2)
-            return d
+
+        onariverdi = False
+        for k, v in VARSAYILAN_PROJELER.items():
+            if k not in d:
+                d[k] = v
+                onariverdi = True
+            else:
+                for kart in ["uno", "nano", "esp32", "esp8266"]:
+                    if kart not in d[k].get("kartlar", {}) or not d[k]["kartlar"][kart].get("kod"):
+                        d[k].setdefault("kartlar", {})[kart] = v["kartlar"][kart]
+                        onariverdi = True
+        
+        if onariverdi:
+            with open(VERI_DOSYASI, "w", encoding="utf-8") as f:
+                json.dump(d, f, ensure_ascii=False, indent=2)
+        return d
     except:
+        with open(VERI_DOSYASI, "w", encoding="utf-8") as f:
+            json.dump(VARSAYILAN_PROJELER, f, ensure_ascii=False, indent=2)
         return VARSAYILAN_PROJELER
 
 def veri_kaydet(veri):
@@ -920,7 +939,7 @@ def veri_kaydet(veri):
         json.dump(veri, f, ensure_ascii=False, indent=2)
 
 # ==============================================================================
-# SIFIR GECİKMELİ & MOBİLDE KOD ALANINA KAYAN ÖN YÜZ
+# SIFIR GECİKMELİ & MOBİLDE KODA KAYAN ÖN YÜZ
 # ==============================================================================
 ANA_SAYFA_HTML = """
 <!DOCTYPE html>
@@ -999,7 +1018,7 @@ ANA_SAYFA_HTML = """
         select, input[type="text"] { width: 100%; padding: 8px; background-color: var(--bg-color); border: 1px solid var(--border); color: #fff; border-radius: 6px; outline: none; font-size: 13px; }
         .result-box { margin-top: 15px; background-color: rgba(0, 151, 157, 0.1); border: 1px solid var(--primary); border-radius: 8px; padding: 12px; text-align: center; font-size: 18px; font-weight: bold; color: var(--accent-green); }
 
-        /* WORKSPACE & MOBİL DUYARLILIK */
+        /* WORKSPACE & MOBİL */
         .workspace-view { display: flex; height: 100%; overflow: hidden; }
         .sidebar { width: 300px; background-color: var(--panel-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
         .search-area { padding: 10px 14px; border-bottom: 1px solid var(--border); }
@@ -1278,7 +1297,6 @@ ANA_SAYFA_HTML = """
 
         kartGoster(aktifKart);
 
-        // MOBİL DÜZELTMESİ: Telefondan tıklandığında sayfayı koda kaydırır
         if (kaydir && window.innerWidth <= 768) {
             document.getElementById('contentArea').scrollIntoView({ behavior: 'smooth' });
         }
@@ -1393,7 +1411,7 @@ def index():
     return render_template_string(ANA_SAYFA_HTML, projeler_json=json.dumps(veri_yukle()))
 
 # ==============================================================================
-# TAM YETKİLİ ADMİN PANELİ (EKLE, SİL, DÜZENLE, LİNK YÖNETİMİ, İSTATİSTİK)
+# TAM YETKİLİ ADMİN PANELİ (GİRİŞ, CRUD, SATIN ALMA LİNKLERİ, KOD DÜZENLEME)
 # ==============================================================================
 ADMIN_LOGIN_HTML = """
 <!DOCTYPE html><html><head><meta charset="utf-8"><title>Yönetici Girişi</title>

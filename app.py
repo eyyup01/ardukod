@@ -17,22 +17,39 @@ Tek dosyalık Flask uygulaması.
     python app.py
 
 Ortam değişkenleri (güvenlik için ÖNERİLİR, Render -> Environment kısmından ayarlayın):
-    ADMIN_USERNAME   -> admin kullanıcı adı (varsayılan: admin)
-    ADMIN_PASSWORD   -> admin şifresi     (varsayılan: ArduKod2026!)
-    SECRET_KEY       -> flask session anahtarı (verilmezse her başlatmada rastgele üretilir,
-                         bu da sunucu her yeniden başladığında oturumların düşmesine sebep olur.
-                         Render'da sabit bir SECRET_KEY tanımlamanız tavsiye edilir.)
+    ADMIN_USERNAME     -> admin kullanıcı adı (varsayılan: admin)
+    ADMIN_PASSWORD     -> admin şifresi     (varsayılan: ArduKod2026!)
+    SECRET_KEY         -> flask session anahtarı (verilmezse her başlatmada rastgele üretilir,
+                           bu da sunucu her yeniden başladığında oturumların düşmesine sebep olur.
+                           Render'da sabit bir SECRET_KEY tanımlamanız tavsiye edilir.)
+    ANTHROPIC_API_KEY  -> AI Asistan özelliği için Claude API anahtarı (console.anthropic.com).
+                          Tanımlanmazsa AI Asistan sayfası kullanıcıya nazik bir uyarı gösterir,
+                          site geri kalanı normal çalışmaya devam eder.
+    ANTHROPIC_MODEL    -> Kullanılacak model (varsayılan: claude-haiku-4-5-20251001 - hızlı/ucuz).
+                          Daha güçlü kod üretimi için "claude-sonnet-5" da kullanılabilir.
+    AI_DAILY_LIMIT     -> Bir tarayıcı oturumunun günde en fazla kaç AI isteği yapabileceği
+                          (varsayılan: 40) - maliyet kontrolü için.
+    DATA_DIR           -> Veritabanı dosyasının (ardukod.db) tutulacağı klasör. Render'da
+                          "Persistent Disk" eklediyseniz mount path'ini buraya yazın
+                          (örn. /var/data) - AKSİ HALDE her deploy'da admin panelinden
+                          eklediğiniz veriler (yeni kodlar, ürün linkleri vb.) SİLİNİR,
+                          çünkü Render'ın kalıcı disk olmadan verdiği dosya sistemi her
+                          yeni deploy'da sıfırlanır. Tanımlanmazsa app.py ile aynı klasör
+                          kullanılır (yerel çalıştırma için sorun değildir).
 """
 
 import os
+import re
+import json
 import sqlite3
 import secrets
-from datetime import datetime, timezone
+import requests
+from datetime import datetime, timezone, date
 from functools import wraps
 
 from flask import (
     Flask, request, redirect, url_for, session,
-    render_template_string, g, flash, abort
+    render_template_string, g, flash, abort, jsonify, Response
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -41,7 +58,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # ----------------------------------------------------------------------------
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "ardukod.db")
+DATA_DIR = os.environ.get("DATA_DIR", BASE_DIR)
+os.makedirs(DATA_DIR, exist_ok=True)
+DB_PATH = os.path.join(DATA_DIR, "ardukod.db")
 
 ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD_HASH = generate_password_hash(
@@ -50,6 +69,12 @@ ADMIN_PASSWORD_HASH = generate_password_hash(
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", secrets.token_hex(32))
+
+# --- AI Asistan ayarları ---
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001")
+ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
+AI_DAILY_LIMIT = int(os.environ.get("AI_DAILY_LIMIT", "40"))
 
 BOARDS = [
     {"key": "uno", "name": "Arduino Uno", "icon": "🟦"},
@@ -60,6 +85,103 @@ BOARDS = [
 ]
 BOARD_KEYS = [b["key"] for b in BOARDS]
 BOARD_MAP = {b["key"]: b for b in BOARDS}
+
+
+# ----------------------------------------------------------------------------
+# AI Asistan (Claude API) yardımcıları
+# ----------------------------------------------------------------------------
+
+ASSISTANT_SYSTEM_PROMPT = """Sen ArduKod sitesinin gömülü Arduino/ESP32/ESP8266 uzman asistanısın.
+Görevlerin:
+1) Kullanıcı bir proje tarif ederse: doğru, derlenebilir, gerçekçi bir Arduino/C++ kodu üret;
+   gerekli pin bağlantılarını ve kısa açıklamayı da ver.
+2) Kullanıcı hatalı/çalışmayan bir kod paylaşırsa: hatayı bul, sebebini açıkla, düzeltilmiş
+   kodu ver.
+3) Genel Arduino/elektronik sorularını kısa, doğru ve anlaşılır şekilde cevapla.
+
+Kurallar:
+- Türkçe cevap ver.
+- Kod bloklarını ```cpp ... ``` içinde ver.
+- Emin olmadığın pin numaralarını/kütüphaneleri uydurma; standart, yaygın kullanılan
+  kütüphaneleri ve pin düzenlerini tercih et.
+- Cevapların kısa ve öz olsun, gereksiz uzatma."""
+
+DRAFT_SYSTEM_PROMPT = """Sen ArduKod sitesi için içerik üreten bir asistansın. Kullanıcının
+verdiği proje açıklamasından SADECE aşağıdaki alanları içeren GEÇERLİ bir JSON nesnesi üret.
+Başka hiçbir açıklama, markdown işareti veya metin ekleme - SADECE JSON döndür.
+
+Format:
+{
+  "board": "uno" | "nano" | "mega" | "esp32" | "esp8266",
+  "title": "kısa başlık",
+  "description": "tek cümlelik açıklama",
+  "code": "tam Arduino kodu (yeni satırlar \\n ile)",
+  "pins": [{"component": "bileşen/pin adı", "connection": "arduino bağlantısı"}],
+  "links": []
+}
+
+Board alanı için kullanıcı belirtmemişse en uygun olanı seç (varsayılan: uno).
+Kod gerçekçi, doğru ve derlenebilir olmalı."""
+
+
+def call_claude(system_prompt, messages, max_tokens=1200):
+    """Anthropic Messages API'sine istek atar, düz metin cevabı döndürür.
+    API anahtarı tanımlı değilse veya istek başarısız olursa RuntimeError fırlatır."""
+    if not ANTHROPIC_API_KEY:
+        raise RuntimeError(
+            "AI Asistan aktif değil: ANTHROPIC_API_KEY ortam değişkeni tanımlanmamış."
+        )
+    try:
+        resp = requests.post(
+            ANTHROPIC_API_URL,
+            headers={
+                "x-api-key": ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": ANTHROPIC_MODEL,
+                "max_tokens": max_tokens,
+                "system": system_prompt,
+                "messages": messages,
+            },
+            timeout=60,
+        )
+    except requests.RequestException as e:
+        raise RuntimeError(f"Claude API'ye bağlanılamadı: {e}")
+
+    if resp.status_code != 200:
+        raise RuntimeError(f"Claude API hata döndürdü ({resp.status_code}): {resp.text[:300]}")
+
+    data = resp.json()
+    text_parts = [b["text"] for b in data.get("content", []) if b.get("type") == "text"]
+    return "\n".join(text_parts).strip()
+
+
+def check_and_increment_ai_quota():
+    """Oturum bazlı günlük AI kullanım limiti. Limit aşıldıysa False döner."""
+    today = date.today().isoformat()
+    quota = session.get("ai_quota", {"date": today, "count": 0})
+    if quota.get("date") != today:
+        quota = {"date": today, "count": 0}
+    if quota["count"] >= AI_DAILY_LIMIT:
+        return False
+    quota["count"] += 1
+    session["ai_quota"] = quota
+    return True
+
+
+def extract_json_object(text):
+    """Model çıktısından (olası ```json ... ``` işaretlerini temizleyip) JSON nesnesi çıkarır."""
+    cleaned = text.strip()
+    cleaned = re.sub(r"^```(?:json)?", "", cleaned.strip())
+    cleaned = re.sub(r"```$", "", cleaned.strip())
+    cleaned = cleaned.strip()
+    start = cleaned.find("{")
+    end = cleaned.rfind("}")
+    if start == -1 or end == -1:
+        raise ValueError("Yanıt içinde JSON nesnesi bulunamadı.")
+    return json.loads(cleaned[start:end + 1])
 
 
 # ----------------------------------------------------------------------------
@@ -83,6 +205,7 @@ def close_db(exception=None):
 
 def init_db():
     db = sqlite3.connect(DB_PATH)
+    db.row_factory = sqlite3.Row
     db.execute("PRAGMA foreign_keys = ON")
     db.executescript(
         """
@@ -117,6 +240,8 @@ def init_db():
     count = db.execute("SELECT COUNT(*) AS c FROM codes").fetchone()[0]
     if count == 0:
         seed_database(db)
+    else:
+        sync_new_seed_entries(db)
     db.close()
 
 
@@ -140,6 +265,43 @@ def seed_database(db):
                 (code_id, label, url),
             )
     db.commit()
+
+
+def sync_new_seed_entries(db):
+    """
+    Veritabanı zaten doluysa (ilk kurulumdan sonra app.py'ye yeni SEED_DATA
+    kodları eklendiyse) bu fonksiyon sadece EKSİK olan başlıkları tespit edip
+    ekler. Var olan kodlara veya admin panelinden yapılmış değişikliklere
+    dokunmaz, hiçbir şeyi silmez veya güncellemez - sadece yenileri tamamlar.
+    """
+    existing_titles = {
+        row["title"] for row in db.execute("SELECT title FROM codes").fetchall()
+    }
+    now = datetime.now(timezone.utc).isoformat()
+    added = 0
+    for item in SEED_DATA:
+        if item["title"] in existing_titles:
+            continue
+        cur = db.execute(
+            "INSERT INTO codes (board, title, description, code_text, created_at) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (item["board"], item["title"], item["description"], item["code"], now),
+        )
+        code_id = cur.lastrowid
+        for comp, conn in item.get("pins", []):
+            db.execute(
+                "INSERT INTO pins (code_id, component, connection) VALUES (?, ?, ?)",
+                (code_id, comp, conn),
+            )
+        for label, url in item.get("links", []):
+            db.execute(
+                "INSERT INTO links (code_id, label, url) VALUES (?, ?, ?)",
+                (code_id, label, url),
+            )
+        added += 1
+    if added:
+        db.commit()
+        print(f"[ArduKod] {added} yeni seed kodu veritabanına eklendi.")
 
 
 # ----------------------------------------------------------------------------
@@ -271,6 +433,20 @@ LAYOUT_TEMPLATE = """
   }
   .link-list a{color:var(--accent2); word-break:break-all;}
   .link-list li{margin-bottom:6px;}
+  .chat-window{
+    display:flex; flex-direction:column; gap:12px; min-height:320px; max-height:520px;
+    overflow-y:auto; padding:16px; background:var(--bg2); border:1px solid var(--border);
+    border-radius:12px; margin-bottom:14px;
+  }
+  .msg{max-width:80%; padding:10px 14px; border-radius:12px; font-size:0.9rem; line-height:1.5; white-space:pre-wrap;}
+  .msg.user{align-self:flex-end; background:var(--accent); color:#04150d; font-weight:500;}
+  .msg.assistant{align-self:flex-start; background:var(--card); border:1px solid var(--border);}
+  .msg.assistant pre{background:#0a0e13; padding:10px; border-radius:8px; overflow-x:auto; font-size:0.82rem;}
+  .msg.error{align-self:flex-start; background:rgba(255,93,93,0.12); border:1px solid rgba(255,93,93,0.4); color:#ffb3b3;}
+  .chat-input-row{display:flex; gap:8px;}
+  .chat-input-row textarea{flex:1; resize:vertical; min-height:52px;}
+  .typing{color:var(--muted); font-size:0.85rem; font-style:italic;}
+  .ai-draft-box{border:1px dashed var(--accent2); border-radius:10px; padding:14px; margin-bottom:18px; background:rgba(77,166,255,0.06);}
 </style>
 </head>
 <body>
@@ -279,6 +455,7 @@ LAYOUT_TEMPLATE = """
   <nav class="mainnav">
     <a href="{{ url_for('home') }}" class="{{ 'active' if active=='home' else '' }}">Ana Sayfa</a>
     <a href="{{ url_for('tools') }}" class="{{ 'active' if active=='tools' else '' }}">Hesaplama Araçları</a>
+    <a href="{{ url_for('assistant_page') }}" class="{{ 'active' if active=='assistant' else '' }}">🤖 AI Asistan</a>
     {% if session.get('is_admin') %}
       <a href="{{ url_for('admin_dashboard') }}" class="{{ 'active' if active=='admin' else '' }}">Panel</a>
       <a href="{{ url_for('admin_logout') }}">Çıkış</a>
@@ -581,6 +758,184 @@ def tools():
 
 
 # ----------------------------------------------------------------------------
+# SEO: robots.txt ve sitemap.xml
+# ----------------------------------------------------------------------------
+
+@app.route("/robots.txt")
+def robots_txt():
+    base = request.url_root.rstrip("/")
+    content = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /admin\n"
+        "Disallow: /api/\n\n"
+        f"Sitemap: {base}/sitemap.xml\n"
+    )
+    return Response(content, mimetype="text/plain")
+
+
+@app.route("/sitemap.xml")
+def sitemap_xml():
+    base = request.url_root.rstrip("/")
+    db = get_db()
+    code_rows = db.execute("SELECT id FROM codes ORDER BY id").fetchall()
+
+    urls = [f"{base}/", f"{base}/tools", f"{base}/asistan"]
+    for b in BOARDS:
+        urls.append(f"{base}/board/{b['key']}")
+    for row in code_rows:
+        urls.append(f"{base}/code/{row['id']}")
+
+    items = "\n".join(f"  <url><loc>{u}</loc></url>" for u in urls)
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        f"{items}\n"
+        "</urlset>"
+    )
+    return Response(xml, mimetype="application/xml")
+
+
+# ----------------------------------------------------------------------------
+# AI Asistan (herkese açık sohbet sayfası)
+# ----------------------------------------------------------------------------
+
+ASSISTANT_TEMPLATE = """
+<h1>🤖 AI Asistan</h1>
+<p class="subtitle">Proje anlat, kod üretsin. Çalışmayan kodunu yapıştır, hatayı bulsun. Aklına takılan her şeyi sor.</p>
+
+{% if not ai_enabled %}
+<div class="flash error">
+  AI Asistan şu anda aktif değil. Site yöneticisi ANTHROPIC_API_KEY ortam değişkenini
+  tanımlamadan bu özellik çalışmaz.
+</div>
+{% endif %}
+
+<div class="chat-window" id="chatWindow">
+  <div class="msg assistant">Merhaba! Ben ArduKod AI Asistanı. Sana yeni bir proje için kod yazabilirim, çalışmayan kodundaki hatayı bulabilirim ya da Arduino/ESP32/ESP8266 hakkında sorularını cevaplayabilirim. Nasıl yardımcı olabilirim?</div>
+</div>
+<div id="typingIndicator" class="typing" style="display:none;">Asistan yazıyor...</div>
+
+<div class="chat-input-row">
+  <textarea id="chatInput" placeholder="Örn: DS18B20 ile ESP32 üzerinde sıcaklık verisini bir web sayfasında göstermek istiyorum..." {{ 'disabled' if not ai_enabled else '' }}></textarea>
+  <button class="btn primary" id="sendBtn" onclick="sendMessage()" {{ 'disabled' if not ai_enabled else '' }}>Gönder</button>
+</div>
+
+<script>
+let chatHistory = [];
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.innerText = str;
+  return div.innerHTML;
+}
+
+function renderMarkdownLite(text){
+  // basit ```cpp ... ``` kod bloğu render'ı
+  let html = escapeHtml(text);
+  html = html.replace(/```(?:cpp|c\\+\\+|arduino)?\\n([\\s\\S]*?)```/g, function(m, code){
+    return '<pre>' + code + '</pre>';
+  });
+  return html.replace(/\\n/g, '<br>');
+}
+
+function appendMessage(role, text){
+  const win = document.getElementById('chatWindow');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  if(role === 'assistant'){
+    div.innerHTML = renderMarkdownLite(text);
+  } else {
+    div.innerText = text;
+  }
+  win.appendChild(div);
+  win.scrollTop = win.scrollHeight;
+}
+
+async function sendMessage(){
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text) return;
+
+  appendMessage('user', text);
+  chatHistory.push({role: 'user', content: text});
+  input.value = '';
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('typingIndicator').style.display = 'block';
+
+  try{
+    const res = await fetch('{{ url_for("api_chat") }}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({messages: chatHistory})
+    });
+    const data = await res.json();
+    if(data.error){
+      appendMessage('error', data.error);
+    } else {
+      appendMessage('assistant', data.reply);
+      chatHistory.push({role: 'assistant', content: data.reply});
+    }
+  } catch(e){
+    appendMessage('error', 'Bağlantı hatası, lütfen tekrar deneyin.');
+  } finally {
+    document.getElementById('sendBtn').disabled = false;
+    document.getElementById('typingIndicator').style.display = 'none';
+  }
+}
+
+document.getElementById('chatInput')?.addEventListener('keydown', function(e){
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault();
+    sendMessage();
+  }
+});
+</script>
+"""
+
+
+@app.route("/asistan")
+def assistant_page():
+    return render_page(
+        "AI Asistan", "assistant", ASSISTANT_TEMPLATE, ai_enabled=bool(ANTHROPIC_API_KEY)
+    )
+
+
+@app.route("/api/chat", methods=["POST"])
+def api_chat():
+    if not ANTHROPIC_API_KEY:
+        return jsonify({"error": "AI Asistan aktif değil (ANTHROPIC_API_KEY tanımlı değil)."}), 503
+
+    if not check_and_increment_ai_quota():
+        return jsonify({
+            "error": f"Günlük AI kullanım limitine ({AI_DAILY_LIMIT} mesaj) ulaştınız. Yarın tekrar deneyin."
+        }), 429
+
+    payload = request.get_json(silent=True) or {}
+    incoming = payload.get("messages", [])
+    if not isinstance(incoming, list) or not incoming:
+        return jsonify({"error": "Geçersiz istek."}), 400
+
+    # Maliyet/güvenlik kontrolü: son 12 mesaj, her mesaj max 4000 karakter
+    trimmed = []
+    for m in incoming[-12:]:
+        role = m.get("role")
+        content = str(m.get("content", ""))[:4000]
+        if role in ("user", "assistant") and content.strip():
+            trimmed.append({"role": role, "content": content})
+
+    if not trimmed or trimmed[-1]["role"] != "user":
+        return jsonify({"error": "Geçersiz mesaj geçmişi."}), 400
+
+    try:
+        reply = call_claude(ASSISTANT_SYSTEM_PROMPT, trimmed, max_tokens=1500)
+    except RuntimeError as e:
+        return jsonify({"error": str(e)}), 502
+
+    return jsonify({"reply": reply})
+
+
+# ----------------------------------------------------------------------------
 # Admin: giriş / çıkış
 # ----------------------------------------------------------------------------
 
@@ -681,20 +1036,37 @@ FORM_TEMPLATE = """
   <h1>{{ 'Kod Düzenle' if c else 'Yeni Kod Ekle' }}</h1>
   <a class="btn" href="{{ url_for('admin_dashboard') }}">&larr; Panele Dön</a>
 </div>
+
+{% if ai_enabled %}
+<div class="ai-draft-box">
+  <h3 style="margin-top:0;">🤖 AI ile Taslak Oluştur</h3>
+  <p style="color:var(--muted); font-size:0.85rem; margin-top:0;">
+    Projeni birkaç cümleyle anlat, board/başlık/açıklama/kod/pin alanlarını otomatik doldurayım.
+    Kaydetmeden önce mutlaka gözden geçir.
+  </p>
+  <textarea id="aiPrompt" rows="3" placeholder="Örn: ESP32 ile DHT22 kullanarak sıcaklık/nem verisini web sayfasında göstermek istiyorum."></textarea>
+  <div style="margin-top:10px;">
+    <button type="button" class="btn primary small" id="aiDraftBtn" onclick="generateDraft()">Taslak Oluştur</button>
+    <span class="typing" id="aiDraftStatus" style="display:none; margin-left:10px;">Oluşturuluyor...</span>
+  </div>
+  <div id="aiDraftError" class="flash error" style="display:none; margin-top:10px;"></div>
+</div>
+{% endif %}
+
 <form method="post">
   <div class="card">
     <label>Board</label>
-    <select name="board" required>
+    <select name="board" id="fBoard" required>
       {% for b in boards %}
         <option value="{{ b['key'] }}" {{ 'selected' if c and c['board']==b['key'] else '' }}>{{ b['icon'] }} {{ b['name'] }}</option>
       {% endfor %}
     </select>
     <label>Başlık</label>
-    <input type="text" name="title" required value="{{ c['title'] if c else '' }}">
+    <input type="text" name="title" id="fTitle" required value="{{ c['title'] if c else '' }}">
     <label>Açıklama</label>
-    <input type="text" name="description" value="{{ c['description'] if c else '' }}">
+    <input type="text" name="description" id="fDescription" value="{{ c['description'] if c else '' }}">
     <label>Arduino Kodu</label>
-    <textarea class="codearea" name="code_text" rows="16" required>{{ c['code_text'] if c else '' }}</textarea>
+    <textarea class="codearea" name="code_text" id="fCodeText" rows="16" required>{{ c['code_text'] if c else '' }}</textarea>
   </div>
 
   <div class="card">
@@ -727,6 +1099,65 @@ FORM_TEMPLATE = """
 
   <button class="btn primary" type="submit">Kaydet</button>
 </form>
+
+<script>
+async function generateDraft(){
+  const promptText = document.getElementById('aiPrompt').value.trim();
+  const errBox = document.getElementById('aiDraftError');
+  errBox.style.display = 'none';
+  if(!promptText){
+    errBox.innerText = 'Lütfen önce bir proje açıklaması yaz.';
+    errBox.style.display = 'block';
+    return;
+  }
+  document.getElementById('aiDraftBtn').disabled = true;
+  document.getElementById('aiDraftStatus').style.display = 'inline';
+
+  try{
+    const res = await fetch('{{ url_for("admin_api_generate") }}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({prompt: promptText})
+    });
+    const data = await res.json();
+    if(data.error){
+      errBox.innerText = data.error;
+      errBox.style.display = 'block';
+      return;
+    }
+    const d = data.draft;
+    if(d.board) document.getElementById('fBoard').value = d.board;
+    if(d.title) document.getElementById('fTitle').value = d.title;
+    if(d.description) document.getElementById('fDescription').value = d.description;
+    if(d.code) document.getElementById('fCodeText').value = d.code;
+
+    document.getElementById('pinRows').innerHTML = '';
+    (d.pins || []).forEach(p => {
+      addPinRow();
+      const rows = document.getElementById('pinRows').children;
+      const last = rows[rows.length - 1];
+      last.querySelector('input[name="pin_component[]"]').value = p.component || '';
+      last.querySelector('input[name="pin_connection[]"]').value = p.connection || '';
+    });
+
+    document.getElementById('linkRows').innerHTML = '';
+    (d.links || []).forEach(l => {
+      addLinkRow();
+      const rows = document.getElementById('linkRows').children;
+      const last = rows[rows.length - 1];
+      last.querySelector('input[name="link_label[]"]').value = l.label || '';
+      last.querySelector('input[name="link_url[]"]').value = l.url || '';
+    });
+  } catch(e){
+    errBox.innerText = 'Bağlantı hatası, lütfen tekrar deneyin.';
+    errBox.style.display = 'block';
+  } finally {
+    document.getElementById('aiDraftBtn').disabled = false;
+    document.getElementById('aiDraftStatus').style.display = 'none';
+  }
+}
+</script>
+
 
 <script>
 function addPinRow(){
@@ -804,7 +1235,8 @@ def admin_new():
         if code_id:
             return redirect(url_for("admin_dashboard"))
     return render_page(
-        "Yeni Kod Ekle", "admin", FORM_TEMPLATE, c=None, pins=[], links=[], boards=BOARDS
+        "Yeni Kod Ekle", "admin", FORM_TEMPLATE, c=None, pins=[], links=[], boards=BOARDS,
+        ai_enabled=bool(ANTHROPIC_API_KEY),
     )
 
 
@@ -821,8 +1253,38 @@ def admin_edit(code_id):
     pins = db.execute("SELECT * FROM pins WHERE code_id=? ORDER BY id", (code_id,)).fetchall()
     links = db.execute("SELECT * FROM links WHERE code_id=? ORDER BY id", (code_id,)).fetchall()
     return render_page(
-        "Kod Düzenle", "admin", FORM_TEMPLATE, c=c, pins=pins, links=links, boards=BOARDS
+        "Kod Düzenle", "admin", FORM_TEMPLATE, c=c, pins=pins, links=links, boards=BOARDS,
+        ai_enabled=bool(ANTHROPIC_API_KEY),
     )
+
+
+@app.route("/admin/api/generate", methods=["POST"])
+@login_required
+def admin_api_generate():
+    if not ANTHROPIC_API_KEY:
+        return jsonify({"error": "AI Asistan aktif değil (ANTHROPIC_API_KEY tanımlı değil)."}), 503
+
+    payload = request.get_json(silent=True) or {}
+    user_prompt = str(payload.get("prompt", "")).strip()[:2000]
+    if not user_prompt:
+        return jsonify({"error": "Lütfen bir proje açıklaması girin."}), 400
+
+    try:
+        raw = call_claude(
+            DRAFT_SYSTEM_PROMPT,
+            [{"role": "user", "content": user_prompt}],
+            max_tokens=2000,
+        )
+        draft = extract_json_object(raw)
+    except RuntimeError as e:
+        return jsonify({"error": str(e)}), 502
+    except (ValueError, json.JSONDecodeError):
+        return jsonify({"error": "AI çıktısı işlenemedi, lütfen tekrar deneyin."}), 502
+
+    if draft.get("board") not in BOARD_KEYS:
+        draft["board"] = "uno"
+
+    return jsonify({"draft": draft})
 
 
 @app.route("/admin/delete/<int:code_id>", methods=["POST"])
@@ -832,6 +1294,7 @@ def admin_delete(code_id):
     db.execute("DELETE FROM codes WHERE id=?", (code_id,))
     db.commit()
     return redirect(url_for("admin_dashboard"))
+
 
 
 # ----------------------------------------------------------------------------
